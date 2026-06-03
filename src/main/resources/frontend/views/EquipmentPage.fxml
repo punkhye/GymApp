@@ -14,7 +14,9 @@
     <HBox alignment="CENTER_LEFT" spacing="20.0">
         <Label text="Каталог на оборудването" styleClass="dashboard-title"/>
         <Region HBox.hgrow="ALWAYS"/>
-        <Button text="+ Добави ново оборудване" styleClass="primary-action-btn"/>
+        <Button text="+ Добави ново оборудване"
+                styleClass="primary-action-btn"
+                onAction="#handleAddEquipment"/>
     </HBox>
 
     <HBox spacing="20.0" alignment="CENTER_LEFT">
@@ -80,7 +82,10 @@
 
             <HBox spacing="10.0" alignment="CENTER_RIGHT">
                 <Button text="+ Добави запис" styleClass="secondary-action-btn" style="-fx-padding: 8px 15px; -fx-font-size: 13px;"/>
-                <Button text="Запази промените" styleClass="primary-action-btn" style="-fx-padding: 8px 15px; -fx-font-size: 13px;"/>
+                <Button text="Запази промените"
+                        styleClass="primary-action-btn"
+                        style="-fx-padding: 8px 15px; -fx-font-size: 13px;"
+                        onAction="#handleSaveChanges"/>
             </HBox>
         </VBox>
 
