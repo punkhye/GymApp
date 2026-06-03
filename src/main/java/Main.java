@@ -24,23 +24,21 @@ public class Main extends Application {
         }
 
         try {
-            // Използваме относителния път, който работи навсякъде локално
-            java.io.File fxmlFile = new java.io.File("./src/main/resources/frontend/views/HomePage.fxml");
-
-            if (!fxmlFile.exists()) {
-                System.out.println("❌ Файлът не е намерен на: " + fxmlFile.getAbsolutePath());
-            }
-
+            // Променено: Първоначално зареждаме логин формата вместо HomePage
+            java.io.File fxmlFile = new java.io.File("./src/main/resources/frontend/views/LoginPage.fxml");
             FXMLLoader loader = new FXMLLoader(fxmlFile.toURI().toURL());
             Parent root = loader.load();
 
-            Scene scene = new Scene(root, 1280, 768);
-            stage.setTitle("GymApp - Начало");
+            // Логин прозорецът се отваря в по-компактен, чист размер
+            Scene scene = new Scene(root, 600, 550);
+
+            stage.setTitle("GymApp - Сигурен вход");
             stage.setScene(scene);
+            stage.setResizable(false); // Забраняваме разпъването на логин формата
             stage.show();
 
         } catch (Exception e) {
-            System.err.println("Грешка при зареждането на FXML дизайна!");
+            System.err.println("Грешка при зареждането на логин дизайна!");
             e.printStackTrace();
         }
     }

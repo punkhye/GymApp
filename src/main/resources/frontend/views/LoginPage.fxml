@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<StackPane xmlns="http://javafx.com/javafx/22" xmlns:fx="http://javafx.com/fxml/1"
+           fx:controller="backend.controllers.LoginController"
+           stylesheets="@style.css" style="-fx-background-color: #F8F9FA;">
+
+    <VBox alignment="CENTER" spacing="20.0" maxHeight="450.0" maxWidth="400.0" styleClass="details-panel" style="-fx-padding: 0;">
+
+        <VBox alignment="CENTER" spacing="5.0" style="-fx-background-color: #1A1D20; -fx-background-radius: 5px 5px 0 0; -fx-padding: 30px;">
+            <Label text="GymApp System" style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #FFFFFF;"/>
+            <Label text="Вход в административния панел" style="-fx-text-fill: #9CA3AF; -fx-font-size: 13px;"/>
+        </VBox>
+
+        <VBox spacing="15.0" style="-fx-padding: 30px;">
+
+            <VBox spacing="5.0">
+                <Label text="Потребителско име:" style="-fx-text-fill: #4B5563; -fx-font-weight: bold; -fx-font-size: 13px;"/>
+                <TextField fx:id="txtUsername" promptText="Въведете потребителско име..." styleClass="search-field" style="-fx-pref-height: 40px;"/>
+            </VBox>
+
+            <VBox spacing="5.0">
+                <Label text="Парола:" style="-fx-text-fill: #4B5563; -fx-font-weight: bold; -fx-font-size: 13px;"/>
+                <PasswordField fx:id="txtPassword" promptText="Въведете парола..." styleClass="search-field" style="-fx-pref-height: 40px;"/>
+            </VBox>
+
+            <Label fx:id="lblError" text="❌ Невалидни данни за достъп!" style="-fx-text-fill: #DC2626; -fx-font-weight: bold; -fx-font-size: 13px;" visible="false"/>
+
+            <Region prefHeight="10.0"/>
+
+            <Button text="Вход в системата" onAction="#handleLogin" styleClass="primary-action-btn" style="-fx-max-width: Infinity; -fx-pref-height: 45px; -fx-font-size: 14px;"/>
+        </VBox>
+
+    </VBox>
+</StackPane>

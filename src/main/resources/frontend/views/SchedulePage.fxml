@@ -62,7 +62,6 @@
                 <ColumnConstraints hgrow="ALWAYS" minWidth="130.0" /> <!-- Събота -->
                 <ColumnConstraints hgrow="ALWAYS" minWidth="130.0" /> <!-- Неделя -->
             </columnConstraints>
-            <!-- Редовете и картите ще се генерират динамично в Java кода -->
         </GridPane>
     </ScrollPane>
 </VBox>

@@ -8,17 +8,20 @@ import javafx.scene.control.*;
 
 public class EquipmentController {
 
+    // --- JavaFX Елементи от таблицата за инвентар ---
     @FXML private TableView<EquipmentRow> equipmentTable;
     @FXML private TableColumn<EquipmentRow, String> colId;
     @FXML private TableColumn<EquipmentRow, String> colName;
     @FXML private TableColumn<EquipmentRow, String> colType;
     @FXML private TableColumn<EquipmentRow, String> colStatus;
 
+    // --- JavaFX Елементи от десния панел (Детайли за уреда) ---
     @FXML private Label lblPanelTitle;
     @FXML private Label lblPurchaseDate;
     @FXML private ComboBox<String> comboStatusEdit;
     @FXML private TextArea txtMaintenanceLogs;
 
+    // Връзка с главния контролер за управление на навигацията
     private HomeController mainController;
 
     public void setMainController(HomeController mainController) {
@@ -27,16 +30,16 @@ public class EquipmentController {
 
     @FXML
     public void initialize() {
-        // Свързване на колоните на таблицата
+        // Мъпване (свързване) на колоните от таблицата със свойствата на модела EquipmentRow
         colId.setCellValueFactory(d -> d.getValue().id);
         colName.setCellValueFactory(d -> d.getValue().name);
         colType.setCellValueFactory(d -> d.getValue().type);
         colStatus.setCellValueFactory(d -> d.getValue().statusText);
 
-        // Настройки на падащото меню в панела за детайли
+        // Попълване на падащото меню за бърза смяна на статуса
         comboStatusEdit.setItems(FXCollections.observableArrayList("🟢 Operational", "🔧 Under Repair", "❌ Out of Service"));
 
-        // Примерни данни за инвентара
+        // Твърдо зададени (Mock) данни за демонстрация на инвентара
         ObservableList<EquipmentRow> list = FXCollections.observableArrayList(
                 new EquipmentRow("EQ-001", "Treadmill Matrix X3", "Cardio", "🟢 Operational", "12 Яну 2024",
                         "05.06.2025 - Сменен ремък и смазан мотор.\n12.11.2025 - Обновен софтуер на екрана от техник."),
@@ -47,7 +50,7 @@ public class EquipmentController {
         );
         equipmentTable.setItems(list);
 
-        // ЛОГИКА ЗА ИЗБОР НА РЕД: Обновява десния панел при кликване върху уред
+        // СЛУШАТЕЛ (Listener): При клик на ред от таблицата, обновяваме инфото в десния панел
         equipmentTable.getSelectionModel().selectedItemProperty().addListener((obs, oldSelection, newSelection) -> {
             if (newSelection != null) {
                 lblPanelTitle.setText("Детайли: " + newSelection.name.get());
@@ -57,14 +60,15 @@ public class EquipmentController {
             }
         });
 
-        // По подразбиране избираме първия ред при стартиране
+        // Автоматично селектиране на първия уред при първоначално зареждане на страницата
         if (!list.isEmpty()) {
             equipmentTable.getSelectionModel().select(0);
         }
     }
 
-    // Помощен вътрешен клас за структурата на таблицата
+    // Помощен POJO клас за структурата и данните на един ред в таблицата
     public static class EquipmentRow {
+        // Използваме SimpleStringProperty за автоматичен синхрон (Data Binding) с JavaFX колоните
         public SimpleStringProperty id, name, type, statusText;
         public String purchaseDate;
         public String maintenanceLogs;
