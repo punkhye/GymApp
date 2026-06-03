@@ -23,17 +23,16 @@ public class EquipmentController {
     @FXML private TableColumn<EquipmentRow, String> colPurchaseDate;
     @FXML private TableColumn<EquipmentRow, String> colStatus;
 
+    //za listener-a
+    private EquipmentRow selectedRow = null;
+
     // detaili desniq panel
     @FXML private Label lblPanelTitle;
     @FXML private Label lblPurchaseDate;
     @FXML private ComboBox<String> comboStatusEdit;
     @FXML private TextArea txtMaintenanceLogs;
     @FXML private TextArea txtNewLogEntry;
-
     private String originalNotes = null;
-    private EquipmentRow selectedRow = null;
-
-
 
     // statove
     @FXML private Label lblTotal;
@@ -202,6 +201,33 @@ public class EquipmentController {
         }
     }
 
+    //updatevane na notes i status v bazata danni
+    private void updateStatusAndLog(String id, String newStatus, String oldStatus, String date) {
+
+        String sql = """
+        UPDATE equipment
+        SET status = ?,
+            notes = COALESCE(notes, '') || ?
+        WHERE id = ?
+    """;
+
+        String logEntry = "\n" + oldStatus + " -> " + newStatus + " (" + date + ")";
+
+        var conn = DBConnection.getConnection();
+
+        try (var stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, newStatus);
+            stmt.setString(2, logEntry);
+            stmt.setInt(3, Integer.parseInt(id));
+
+            stmt.executeUpdate();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
     // zarejdane na tablica
     private void loadEquipmentFromDB() {
 
@@ -293,9 +319,35 @@ public class EquipmentController {
         // update DB
         updateNotesInDB(selectedRow.id.get(), updatedLogs);
 
-        // update UI instantly (no reload needed)
+        // update UI
         txtMaintenanceLogs.setText(updatedLogs);
         txtNewLogEntry.clear();
+    }
+
+    //updatevane na sustoqnieto na urodena pri butona "zapazvane na promenite"
+    @FXML
+    private void onSaveChanges() {
+
+        if (selectedRow == null) return;
+
+        String newStatus = comboStatusEdit.getValue();
+        if (newStatus == null || newStatus.isBlank()) return;
+
+        String oldStatus = selectedRow.statusText.get();
+
+        if (oldStatus.equals(newStatus)) return; // няма промяна
+
+        String date = LocalDate.now().toString();
+
+        // 1. update model
+        selectedRow.statusText.set(newStatus);
+
+        // 2. update DB (status + log)
+        updateStatusAndLog(selectedRow.id.get(), newStatus, oldStatus, date);
+
+        // 3. update UI
+        loadEquipmentFromDB();
+        loadStatsFromDB();
     }
 
     // model

@@ -95,7 +95,10 @@
                         styleClass="secondary-action-btn"
                         style="-fx-padding: 8px 15px; -fx-font-size: 13px;"
                         onAction="#onAddLog"/>
-                <Button text="Запази промените" styleClass="primary-action-btn" style="-fx-padding: 8px 15px; -fx-font-size: 13px;"/>
+                <Button text="Запази промените"
+                        styleClass="primary-action-btn"
+                        style="-fx-padding: 8px 15px; -fx-font-size: 13px;"
+                        onAction="#onSaveChanges"/>
             </HBox>
         </VBox>
 
