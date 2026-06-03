@@ -13,7 +13,8 @@ public class Main extends Application {
     public void start(Stage stage) {
 
 
-        var conn = DBConnection.connect();
+        var conn = DBConnection.getConnection();
+        DBConnection.init();
 
         Label label;
 

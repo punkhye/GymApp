@@ -18,12 +18,12 @@ public class CreateEquipmentDialogController {
     public void initialize() {
 
         statusField.setItems(FXCollections.observableArrayList(
-                "🟢 Operational",
-                "🔧 Under Repair",
-                "❌ Out of Service"
+                "Operational",
+                "Under Repair",
+                "Out of Service"
         ));
 
-        statusField.setValue("🟢 Operational");
+        statusField.setValue("Operational");
     }
 
     public EquipmentController.EquipmentRow getResult() {

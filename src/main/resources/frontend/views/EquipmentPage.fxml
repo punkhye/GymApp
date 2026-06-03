@@ -21,11 +21,9 @@
 
     <HBox spacing="20.0" alignment="CENTER_LEFT">
         <HBox spacing="15.0" styleClass="mini-stats-container">
-            <Label text="Общо машини: 45" style="-fx-font-weight: bold; -fx-text-fill: #1A1D20;"/>
-            <Separator orientation="VERTICAL" prefHeight="15.0"/>
-            <Label text="🔧 В ремонт: 3" style="-fx-font-weight: bold; -fx-text-fill: #D97706;"/>
-            <Separator orientation="VERTICAL" prefHeight="15.0"/>
-            <Label text="❌ Извън употреба: 1" style="-fx-font-weight: bold; -fx-text-fill: #DC2626;"/>
+            <Label fx:id="lblTotal" text="Общо машини: 0" style="-fx-font-weight: bold;"/>
+            <Label fx:id="lblRepair" text="В ремонт: 0" style="-fx-font-weight: bold; -fx-text-fill: #D97706;"/>
+            <Label fx:id="lblOut" text="Извън употреба: 0" style="-fx-font-weight: bold; -fx-text-fill: #DC2626;"/>
         </HBox>
     </HBox>
 

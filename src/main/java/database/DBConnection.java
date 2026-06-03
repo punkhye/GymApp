@@ -4,51 +4,50 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.util.Properties;
 import java.io.FileInputStream;
-import java.io.InputStream;
 
 public class DBConnection {
 
     private static Connection connection;
 
-    public static Connection connect() {
+    public static void init() {
+        if (connection != null) return;
+
         try {
             Class.forName("org.postgresql.Driver");
 
             Properties props = new Properties();
+            props.load(new FileInputStream("src/main/java/database/db.properties"));
 
-            InputStream input = new FileInputStream("src/main/java/database/db.properties");
-            props.load(input);
+            connection = DriverManager.getConnection(
+                    props.getProperty("db.url"),
+                    props.getProperty("db.user"),
+                    props.getProperty("db.password")
+            );
 
-            String url = props.getProperty("db.url");
-            String user = props.getProperty("db.user");
-            String password = props.getProperty("db.password");
-
-            connection = DriverManager.getConnection(url, user, password);
-
-            System.out.println("Connected successfully!");
-            return connection;
+            System.out.println("DB connected!");
 
         } catch (Exception e) {
-            System.out.println("Connection failed!");
             e.printStackTrace();
-            return null;
         }
     }
 
     public static Connection getConnection() {
-        if (connection == null) {
-            return connect();
+        try {
+            if (connection == null || connection.isClosed()) {
+                init();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
         return connection;
     }
 
-
     public static void close() {
         try {
-            if (connection != null) {
+            if (connection != null && !connection.isClosed()) {
                 connection.close();
                 connection = null;
-                System.out.println("Connection closed!");
+                System.out.println("DB closed!");
             }
         } catch (Exception e) {
             e.printStackTrace();

@@ -12,18 +12,23 @@ import javafx.stage.Stage;
 
 public class EquipmentController {
 
-    // --- TABLE ---
+    // TABLE
     @FXML private TableView<EquipmentRow> equipmentTable;
     @FXML private TableColumn<EquipmentRow, String> colId;
     @FXML private TableColumn<EquipmentRow, String> colName;
     @FXML private TableColumn<EquipmentRow, String> colType;
     @FXML private TableColumn<EquipmentRow, String> colStatus;
 
-    // --- DETAILS PANEL ---
+    // DETAILS PANEL
     @FXML private Label lblPanelTitle;
     @FXML private Label lblPurchaseDate;
     @FXML private ComboBox<String> comboStatusEdit;
     @FXML private TextArea txtMaintenanceLogs;
+
+    // STATS
+    @FXML private Label lblTotal;
+    @FXML private Label lblRepair;
+    @FXML private Label lblOut;
 
     private ObservableList<EquipmentRow> equipmentList;
 
@@ -38,12 +43,13 @@ public class EquipmentController {
         colStatus.setCellValueFactory(d -> d.getValue().statusText);
 
         comboStatusEdit.setItems(FXCollections.observableArrayList(
-                "🟢 Operational",
-                "🔧 Under Repair",
-                "❌ Out of Service"
+                "Operational",
+                "Under Repair",
+                "Out of Service"
         ));
 
         loadEquipmentFromDB();
+        loadStatsFromDB();
 
         equipmentTable.getSelectionModel().selectedItemProperty().addListener((obs, oldSel, newSel) -> {
             if (newSel != null) {
@@ -55,12 +61,11 @@ public class EquipmentController {
         });
     }
 
-
     public void setMainController(HomeController mainController) {
         this.mainController = mainController;
     }
 
-    // dialozi
+    // OPEN DIALOG
     @FXML
     private void openCreateEquipmentForm() {
         try {
@@ -89,21 +94,24 @@ public class EquipmentController {
         }
     }
 
-    //tablica
+    // dobavqne na tablicata i refreshvane na cqlata informaciq na stranicata
     public void addEquipment(EquipmentRow row) {
         equipmentList.add(row);
+        loadStatsFromDB();
+        loadEquipmentFromDB();
     }
 
-    //database
+    // SAVE TO DB
     private void saveToDatabase(EquipmentRow row) {
 
         String sql = """
-        INSERT INTO equipment (name, type, status, notes)
-        VALUES (?, ?, ?, ?)
-    """;
+            INSERT INTO equipment (name, type, status, notes)
+            VALUES (?, ?, ?, ?)
+        """;
 
-        try (var conn = DBConnection.getConnection();
-             var stmt = conn.prepareStatement(sql)) {
+        var conn = DBConnection.getConnection();
+
+        try (var stmt = conn.prepareStatement(sql)) {
 
             stmt.setString(1, row.name.get());
             stmt.setString(2, row.type.get());
@@ -117,14 +125,16 @@ public class EquipmentController {
         }
     }
 
+    // LOAD TABLE
     private void loadEquipmentFromDB() {
 
         equipmentList = FXCollections.observableArrayList();
 
         String sql = "SELECT id, name, type, status, notes FROM equipment";
 
-        try (var conn = DBConnection.getConnection();
-             var stmt = conn.prepareStatement(sql);
+        var conn = DBConnection.getConnection();
+
+        try (var stmt = conn.prepareStatement(sql);
              var rs = stmt.executeQuery()) {
 
             while (rs.next()) {
@@ -148,9 +158,35 @@ public class EquipmentController {
         }
     }
 
-    // -------------------------
+    // STATS
+    private void loadStatsFromDB() {
+
+        String sql = """
+            SELECT
+                COUNT(*) AS total,
+                COUNT(*) FILTER (WHERE status = 'Under Repair') AS repair,
+                COUNT(*) FILTER (WHERE status = 'Out of Service') AS out
+            FROM equipment
+        """;
+
+        var conn = DBConnection.getConnection();
+
+        try (var stmt = conn.prepareStatement(sql);
+             var rs = stmt.executeQuery()) {
+
+            if (rs.next()) {
+
+                lblTotal.setText("Общо машини: " + rs.getInt("total"));
+                lblRepair.setText("В ремонт: " + rs.getInt("repair"));
+                lblOut.setText("Извън употреба: " + rs.getInt("out"));
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
     // MODEL
-    // -------------------------
     public static class EquipmentRow {
 
         public final javafx.beans.property.SimpleStringProperty id;
