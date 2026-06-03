@@ -1,83 +1,174 @@
 package backend.controllers;
 
-import javafx.beans.property.SimpleStringProperty;
+import database.DBConnection;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.stage.Modality;
+import javafx.stage.Stage;
 
 public class EquipmentController {
 
-    // --- JavaFX Елементи от таблицата за инвентар ---
+    // --- TABLE ---
     @FXML private TableView<EquipmentRow> equipmentTable;
     @FXML private TableColumn<EquipmentRow, String> colId;
     @FXML private TableColumn<EquipmentRow, String> colName;
     @FXML private TableColumn<EquipmentRow, String> colType;
     @FXML private TableColumn<EquipmentRow, String> colStatus;
 
-    // --- JavaFX Елементи от десния панел (Детайли за уреда) ---
+    // --- DETAILS PANEL ---
     @FXML private Label lblPanelTitle;
     @FXML private Label lblPurchaseDate;
     @FXML private ComboBox<String> comboStatusEdit;
     @FXML private TextArea txtMaintenanceLogs;
 
-    // Връзка с главния контролер за управление на навигацията
-    private HomeController mainController;
+    private ObservableList<EquipmentRow> equipmentList;
 
-    public void setMainController(HomeController mainController) {
-        this.mainController = mainController;
-    }
+    private HomeController mainController;
 
     @FXML
     public void initialize() {
-        // Мъпване (свързване) на колоните от таблицата със свойствата на модела EquipmentRow
+
         colId.setCellValueFactory(d -> d.getValue().id);
         colName.setCellValueFactory(d -> d.getValue().name);
         colType.setCellValueFactory(d -> d.getValue().type);
         colStatus.setCellValueFactory(d -> d.getValue().statusText);
 
-        // Попълване на падащото меню за бърза смяна на статуса
-        comboStatusEdit.setItems(FXCollections.observableArrayList("🟢 Operational", "🔧 Under Repair", "❌ Out of Service"));
+        comboStatusEdit.setItems(FXCollections.observableArrayList(
+                "🟢 Operational",
+                "🔧 Under Repair",
+                "❌ Out of Service"
+        ));
 
-        // Твърдо зададени (Mock) данни за демонстрация на инвентара
-        ObservableList<EquipmentRow> list = FXCollections.observableArrayList(
-                new EquipmentRow("EQ-001", "Treadmill Matrix X3", "Cardio", "🟢 Operational", "12 Яну 2024",
-                        "05.06.2025 - Сменен ремък и смазан мотор.\n12.11.2025 - Обновен софтуер на екрана от техник."),
-                new EquipmentRow("EQ-014", "Squat Rack Rogue", "Strength", "🔧 Under Repair", "20 Мар 2023",
-                        "01.05.2026 - Забелязана пукнатина на предпазния щифт.\n03.06.2026 - Поръчан е нов оригинален щифт от Rogue."),
-                new EquipmentRow("EQ-022", "Leg Press LifeFitness", "Strength", "❌ Out of Service", "15 Авг 2022",
-                        "10.04.2026 - Скъсано стоманено въже.\n25.04.2026 - Доставчикът бави доставката на резервната част.")
-        );
-        equipmentTable.setItems(list);
+        loadEquipmentFromDB();
 
-        // СЛУШАТЕЛ (Listener): При клик на ред от таблицата, обновяваме инфото в десния панел
-        equipmentTable.getSelectionModel().selectedItemProperty().addListener((obs, oldSelection, newSelection) -> {
-            if (newSelection != null) {
-                lblPanelTitle.setText("Детайли: " + newSelection.name.get());
-                lblPurchaseDate.setText(newSelection.purchaseDate);
-                comboStatusEdit.setValue(newSelection.statusText.get());
-                txtMaintenanceLogs.setText(newSelection.maintenanceLogs);
+        equipmentTable.getSelectionModel().selectedItemProperty().addListener((obs, oldSel, newSel) -> {
+            if (newSel != null) {
+                lblPanelTitle.setText("Детайли: " + newSel.name.get());
+                lblPurchaseDate.setText(newSel.purchaseDate);
+                comboStatusEdit.setValue(newSel.statusText.get());
+                txtMaintenanceLogs.setText(newSel.maintenanceLogs);
             }
         });
+    }
 
-        // Автоматично селектиране на първия уред при първоначално зареждане на страницата
-        if (!list.isEmpty()) {
-            equipmentTable.getSelectionModel().select(0);
+
+    public void setMainController(HomeController mainController) {
+        this.mainController = mainController;
+    }
+
+    // dialozi
+    @FXML
+    private void openCreateEquipmentForm() {
+        try {
+            FXMLLoader loader = new FXMLLoader(
+                    getClass().getResource("/frontend/views/CreateEquipmentDialog.fxml")
+            );
+
+            Stage stage = new Stage();
+            stage.setScene(new Scene(loader.load()));
+            stage.setTitle("Добавяне на оборудване");
+            stage.initModality(Modality.APPLICATION_MODAL);
+            stage.setResizable(false);
+
+            stage.showAndWait();
+
+            CreateEquipmentDialogController controller = loader.getController();
+            EquipmentRow result = controller.getResult();
+
+            if (result != null) {
+                addEquipment(result);
+                saveToDatabase(result);
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
-    // Помощен POJO клас за структурата и данните на един ред в таблицата
+    //tablica
+    public void addEquipment(EquipmentRow row) {
+        equipmentList.add(row);
+    }
+
+    //database
+    private void saveToDatabase(EquipmentRow row) {
+
+        String sql = """
+        INSERT INTO equipment (name, type, status, notes)
+        VALUES (?, ?, ?, ?)
+    """;
+
+        try (var conn = DBConnection.getConnection();
+             var stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, row.name.get());
+            stmt.setString(2, row.type.get());
+            stmt.setString(3, row.statusText.get());
+            stmt.setString(4, row.maintenanceLogs);
+
+            stmt.executeUpdate();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void loadEquipmentFromDB() {
+
+        equipmentList = FXCollections.observableArrayList();
+
+        String sql = "SELECT id, name, type, status, notes FROM equipment";
+
+        try (var conn = DBConnection.getConnection();
+             var stmt = conn.prepareStatement(sql);
+             var rs = stmt.executeQuery()) {
+
+            while (rs.next()) {
+
+                EquipmentRow row = new EquipmentRow(
+                        "EQ-" + rs.getInt("id"),
+                        rs.getString("name"),
+                        rs.getString("type"),
+                        rs.getString("status"),
+                        "",
+                        rs.getString("notes")
+                );
+
+                equipmentList.add(row);
+            }
+
+            equipmentTable.setItems(equipmentList);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    // -------------------------
+    // MODEL
+    // -------------------------
     public static class EquipmentRow {
-        // Използваме SimpleStringProperty за автоматичен синхрон (Data Binding) с JavaFX колоните
-        public SimpleStringProperty id, name, type, statusText;
+
+        public final javafx.beans.property.SimpleStringProperty id;
+        public final javafx.beans.property.SimpleStringProperty name;
+        public final javafx.beans.property.SimpleStringProperty type;
+        public final javafx.beans.property.SimpleStringProperty statusText;
+
         public String purchaseDate;
         public String maintenanceLogs;
 
-        public EquipmentRow(String id, String name, String type, String status, String purchaseDate, String logs) {
-            this.id = new SimpleStringProperty(id);
-            this.name = new SimpleStringProperty(name);
-            this.type = new SimpleStringProperty(type);
-            this.statusText = new SimpleStringProperty(status);
+        public EquipmentRow(String id, String name, String type, String status,
+                            String purchaseDate, String logs) {
+
+            this.id = new javafx.beans.property.SimpleStringProperty(id);
+            this.name = new javafx.beans.property.SimpleStringProperty(name);
+            this.type = new javafx.beans.property.SimpleStringProperty(type);
+            this.statusText = new javafx.beans.property.SimpleStringProperty(status);
+
             this.purchaseDate = purchaseDate;
             this.maintenanceLogs = logs;
         }
