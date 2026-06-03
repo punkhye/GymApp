@@ -1,6 +1,7 @@
 package backend.controllers;
 
 import database.DBConnection;
+import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -10,6 +11,8 @@ import javafx.scene.control.*;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 
+import java.time.LocalDate;
+
 public class EquipmentController {
 
     // tablica
@@ -17,6 +20,7 @@ public class EquipmentController {
     @FXML private TableColumn<EquipmentRow, String> colId;
     @FXML private TableColumn<EquipmentRow, String> colName;
     @FXML private TableColumn<EquipmentRow, String> colType;
+    @FXML private TableColumn<EquipmentRow, String> colPurchaseDate;
     @FXML private TableColumn<EquipmentRow, String> colStatus;
 
     // detaili desniq panel
@@ -42,6 +46,7 @@ public class EquipmentController {
         colId.setCellValueFactory(d -> d.getValue().id);
         colName.setCellValueFactory(d -> d.getValue().name);
         colType.setCellValueFactory(d -> d.getValue().type);
+        colPurchaseDate.setCellValueFactory(d -> d.getValue().purchaseDate);
         colStatus.setCellValueFactory(d -> d.getValue().statusText);
 
         equipmentTable.setItems(equipmentList);
@@ -106,8 +111,8 @@ public class EquipmentController {
     private void saveToDatabase(EquipmentRow row) {
 
         String sql = """
-            INSERT INTO equipment (name, type, status, notes)
-            VALUES (?, ?, ?, ?)
+         INSERT INTO equipment (name, type, status, notes, purchase_date)
+          VALUES (?, ?, ?, ?, ?)
         """;
 
         var conn = DBConnection.getConnection();
@@ -118,6 +123,15 @@ public class EquipmentController {
             stmt.setString(2, row.type.get());
             stmt.setString(3, row.statusText.get());
             stmt.setString(4, row.maintenanceLogs);
+
+
+            String dateStr = row.purchaseDate.get();
+
+            LocalDate date = (dateStr == null || dateStr.isBlank())
+                    ? LocalDate.now()
+                    : LocalDate.parse(dateStr);
+
+            stmt.setDate(5, java.sql.Date.valueOf(date));
 
             stmt.executeUpdate();
 
@@ -131,7 +145,7 @@ public class EquipmentController {
 
         equipmentList.clear();
 
-        String sql = "SELECT id, name, type, status, notes FROM equipment";
+        String sql = "SELECT id, name, type, status, notes, purchase_date FROM equipment";
 
         var conn = DBConnection.getConnection();
 
@@ -145,7 +159,7 @@ public class EquipmentController {
                         rs.getString("name"),
                         rs.getString("type"),
                         rs.getString("status"),
-                        "",
+                        rs.getString("purchase_date"),
                         rs.getString("notes")
                 );
 
@@ -192,7 +206,7 @@ public class EquipmentController {
         public final javafx.beans.property.SimpleStringProperty type;
         public final javafx.beans.property.SimpleStringProperty statusText;
 
-        public String purchaseDate;
+        public final SimpleStringProperty purchaseDate;
         public String maintenanceLogs;
 
         public EquipmentRow(String id, String name, String type, String status,
@@ -203,7 +217,7 @@ public class EquipmentController {
             this.type = new javafx.beans.property.SimpleStringProperty(type);
             this.statusText = new javafx.beans.property.SimpleStringProperty(status);
 
-            this.purchaseDate = purchaseDate;
+            this.purchaseDate = new SimpleStringProperty(purchaseDate);
             this.maintenanceLogs = logs;
         }
     }

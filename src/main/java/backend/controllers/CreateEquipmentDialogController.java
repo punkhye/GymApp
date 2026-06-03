@@ -5,12 +5,15 @@ import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.stage.Stage;
 
+import java.time.LocalDate;
+
 public class CreateEquipmentDialogController {
 
     @FXML private TextField nameField;
     @FXML private TextField typeField;
     @FXML private ComboBox<String> statusField;
     @FXML private TextArea notesField;
+    @FXML private DatePicker purchaseDateField;
 
     private EquipmentController.EquipmentRow result;
 
@@ -43,7 +46,9 @@ public class CreateEquipmentDialogController {
                 nameField.getText(),
                 typeField.getText(),
                 statusField.getValue(),
-                "",
+                purchaseDateField.getValue() != null
+                        ? purchaseDateField.getValue().toString()
+                        : LocalDate.now().toString(),
                 notesField.getText()
         );
 

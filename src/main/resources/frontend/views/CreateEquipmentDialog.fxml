@@ -19,7 +19,7 @@
 
     <TextField fx:id="nameField" promptText="Име на уреда"/>
     <TextField fx:id="typeField" promptText="Тип (Cardio / Strength)"/>
-
+    <DatePicker fx:id="purchaseDateField" promptText="Дата на придобиване"/>
     <ComboBox fx:id="statusField" promptText="Статус"/>
 
     <TextArea fx:id="notesField"

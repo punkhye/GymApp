@@ -40,9 +40,10 @@
         <VBox HBox.hgrow="ALWAYS" prefWidth="600.0">
             <TableView fx:id="equipmentTable" VBox.vgrow="ALWAYS" styleClass="custom-table">
                 <columns>
-                    <TableColumn fx:id="colId" text="Asset ID" prefWidth="100.0" style="-fx-alignment: CENTER;"/>
+                    <TableColumn fx:id="colId" text="ID" prefWidth="100.0" style="-fx-alignment: CENTER;"/>
                     <TableColumn fx:id="colName" text="Име на уреда" prefWidth="250.0"/>
                     <TableColumn fx:id="colType" text="Тип" prefWidth="130.0"/>
+                    <TableColumn fx:id="colPurchaseDate" text="Дата на придобиване" prefWidth="150"/>
                     <TableColumn fx:id="colStatus" text="Статус" prefWidth="150.0" style="-fx-alignment: CENTER;"/>
                 </columns>
                 <columnResizePolicy>
