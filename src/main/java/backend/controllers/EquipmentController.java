@@ -67,8 +67,28 @@ public class EquipmentController {
                         lblPanelTitle.setText("Детайли: " + newSel.name.get());
                         comboStatusEdit.setValue(newSel.statusText.get());
                         txtMaintenanceLogs.setText(newSel.maintenanceLogs);
+
+
+                        lblPurchaseDate.setText(
+                                newSel.purchaseDate.get()
+                        );
                     }
                 });
+
+        equipmentTable.setRowFactory(tv -> new TableRow<>() {
+            @Override
+            protected void updateItem(EquipmentRow row, boolean empty) {
+                super.updateItem(row, empty);
+
+                if (row == null || empty) {
+                    setStyle("");
+                } else if (isSelected()) {
+                    setStyle("-fx-background-color: #22c55e; -fx-text-fill: white;");
+                } else {
+                    setStyle("");
+                }
+            }
+        });
     }
 
     public void setMainController(HomeController mainController) {

@@ -1,0 +1,1 @@
+TRUNCATE TABLE equipment RESTART IDENTITY; - za triene na cqlata tablica
