@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox xmlns="http://javafx.com/javafx/22" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="backend.controllers.ScheduleController"
+      stylesheets="@style.css" spacing="20.0" styleClass="main-content-scroll">
+    <padding>
+        <Insets top="30.0" right="30.0" bottom="30.0" left="30.0"/>
+    </padding>
+
+    <!-- HEADER SECTION -->
+    <HBox alignment="CENTER_LEFT" spacing="20.0">
+        <Label text="График и групови тренировки" styleClass="dashboard-title"/>
+        <Region HBox.hgrow="ALWAYS"/>
+        <HBox spacing="10.0">
+            <Button text="⚙ Управление на типове" styleClass="secondary-action-btn"/>
+            <Button text="+ Нова тренировка" styleClass="primary-action-btn"/>
+        </HBox>
+    </HBox>
+
+    <!-- CALENDAR NAVIGATION & FILTER BAR -->
+    <HBox spacing="15.0" alignment="CENTER_LEFT" styleClass="filter-bar">
+        <padding>
+            <Insets top="12.0" right="15.0" bottom="12.0" left="15.0"/>
+        </padding>
+
+        <!-- Седмична навигация вляво -->
+        <HBox alignment="CENTER_LEFT" spacing="10.0">
+            <Button text="&lt;" styleClass="pagination-btn"/>
+            <Button text="Днес" styleClass="pagination-btn" style="-fx-pref-width: 60px;"/>
+            <Button text="&gt;" styleClass="pagination-btn"/>
+            <Label text="01 Юни - 07 Юни, 2026" style="-fx-font-size: 15px; -fx-font-weight: bold; -fx-text-fill: #1A1D20; -fx-padding: 0 0 0 10;"/>
+        </HBox>
+
+        <Region HBox.hgrow="ALWAYS"/>
+
+        <!-- Превключватели за изглед (Segmented Buttons) -->
+        <HBox styleClass="segmented-group">
+            <Button text="Ден" styleClass="segmented-btn"/>
+            <Button text="Седмица" styleClass="segmented-btn, segmented-btn-active"/>
+            <Button text="Месец" styleClass="segmented-btn"/>
+        </HBox>
+
+        <!-- Падащи филтри -->
+        <ComboBox promptText="Филтър треньор" styleClass="filter-combo" style="-fx-pref-width: 150px;"/>
+        <ComboBox promptText="Филтър зала" styleClass="filter-combo" style="-fx-pref-width: 130px;"/>
+    </HBox>
+
+    <!-- WEEKLY TIMETABLE GRID (Календар) -->
+    <ScrollPane fitToWidth="true" styleClass="calendar-scroll" VBox.vgrow="ALWAYS">
+        <GridPane fx:id="calendarGrid" styleClass="calendar-grid">
+            <columnConstraints>
+                <ColumnConstraints prefWidth="80.0" minWidth="80.0" halignment="CENTER" /> <!-- Колона за Часовете -->
+                <ColumnConstraints hgrow="ALWAYS" minWidth="130.0" /> <!-- Понеделник -->
+                <ColumnConstraints hgrow="ALWAYS" minWidth="130.0" /> <!-- Вторник -->
+                <ColumnConstraints hgrow="ALWAYS" minWidth="130.0" /> <!-- Сряда -->
+                <ColumnConstraints hgrow="ALWAYS" minWidth="130.0" /> <!-- Четвъртък -->
+                <ColumnConstraints hgrow="ALWAYS" minWidth="130.0" /> <!-- Петък -->
+                <ColumnConstraints hgrow="ALWAYS" minWidth="130.0" /> <!-- Събота -->
+                <ColumnConstraints hgrow="ALWAYS" minWidth="130.0" /> <!-- Неделя -->
+            </columnConstraints>
+            <!-- Редовете и картите ще се генерират динамично в Java кода -->
+        </GridPane>
+    </ScrollPane>
+</VBox>

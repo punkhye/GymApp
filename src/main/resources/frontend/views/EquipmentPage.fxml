@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox xmlns="http://javafx.com/javafx/22" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="backend.controllers.EquipmentController"
+      stylesheets="@style.css" spacing="20.0" styleClass="main-content-scroll">
+    <padding>
+        <Insets top="30.0" right="30.0" bottom="30.0" left="30.0"/>
+    </padding>
+
+    <HBox alignment="CENTER_LEFT" spacing="20.0">
+        <Label text="Каталог на оборудването" styleClass="dashboard-title"/>
+        <Region HBox.hgrow="ALWAYS"/>
+        <Button text="+ Добави ново оборудване" styleClass="primary-action-btn"/>
+    </HBox>
+
+    <HBox spacing="20.0" alignment="CENTER_LEFT">
+        <HBox spacing="15.0" styleClass="mini-stats-container">
+            <Label text="Общо машини: 45" style="-fx-font-weight: bold; -fx-text-fill: #1A1D20;"/>
+            <Separator orientation="VERTICAL" prefHeight="15.0"/>
+            <Label text="🔧 В ремонт: 3" style="-fx-font-weight: bold; -fx-text-fill: #D97706;"/>
+            <Separator orientation="VERTICAL" prefHeight="15.0"/>
+            <Label text="❌ Извън употреба: 1" style="-fx-font-weight: bold; -fx-text-fill: #DC2626;"/>
+        </HBox>
+    </HBox>
+
+    <HBox spacing="15.0" alignment="CENTER_LEFT" styleClass="filter-bar">
+        <padding>
+            <Insets top="10.0" right="15.0" bottom="10.0" left="15.0"/>
+        </padding>
+        <TextField promptText="🔍 Търси оборудване по име или ID..." HBox.hgrow="ALWAYS" styleClass="search-field"/>
+        <ComboBox promptText="Всички статуси" styleClass="filter-combo" style="-fx-pref-width: 180px;"/>
+    </HBox>
+
+    <HBox spacing="20.0" VBox.vgrow="ALWAYS">
+
+        <VBox HBox.hgrow="ALWAYS" prefWidth="600.0">
+            <TableView fx:id="equipmentTable" VBox.vgrow="ALWAYS" styleClass="custom-table">
+                <columns>
+                    <TableColumn fx:id="colId" text="Asset ID" prefWidth="100.0" style="-fx-alignment: CENTER;"/>
+                    <TableColumn fx:id="colName" text="Име на уреда" prefWidth="250.0"/>
+                    <TableColumn fx:id="colType" text="Тип" prefWidth="130.0"/>
+                    <TableColumn fx:id="colStatus" text="Статус" prefWidth="150.0" style="-fx-alignment: CENTER;"/>
+                </columns>
+                <columnResizePolicy>
+                    <TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/>
+                </columnResizePolicy>
+            </TableView>
+        </VBox>
+
+        <VBox prefWidth="400.0" minWidth="380.0" styleClass="details-panel" spacing="15.0">
+            <padding>
+                <Insets top="20.0" right="20.0" bottom="20.0" left="20.0"/>
+            </padding>
+
+            <Label fx:id="lblPanelTitle" text="Детайли на активен уред" styleClass="section-title"/>
+            <Separator />
+
+            <GridPane vgap="10.0" hgap="10.0">
+                <columnConstraints>
+                    <ColumnConstraints prefWidth="120.0"/>
+                    <ColumnConstraints hgrow="ALWAYS"/>
+                </columnConstraints>
+                <children>
+                    <Label text="Дата на закупуване:" style="-fx-text-fill: #6B7280; -fx-font-weight: bold;" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+                    <Label fx:id="lblPurchaseDate" text="--" style="-fx-text-fill: #1A1D20;" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+
+                    <Label text="Промяна статус:" style="-fx-text-fill: #6B7280; -fx-font-weight: bold;" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+                    <ComboBox fx:id="comboStatusEdit" styleClass="filter-combo" style="-fx-pref-width: 180px; -fx-pref-height: 30px;" GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+                </children>
+            </GridPane>
+
+            <Separator />
+
+            <Label text="История на поддръжката и бележки" styleClass="kpi-title" style="-fx-text-fill: #1A1D20;"/>
+            <TextArea fx:id="txtMaintenanceLogs" VBox.vgrow="ALWAYS" styleClass="log-area" wrapText="true" />
+
+            <HBox spacing="10.0" alignment="CENTER_RIGHT">
+                <Button text="+ Добави запис" styleClass="secondary-action-btn" style="-fx-padding: 8px 15px; -fx-font-size: 13px;"/>
+                <Button text="Запази промените" styleClass="primary-action-btn" style="-fx-padding: 8px 15px; -fx-font-size: 13px;"/>
+            </HBox>
+        </VBox>
+
+    </HBox>
+</VBox>

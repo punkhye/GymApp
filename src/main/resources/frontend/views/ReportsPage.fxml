@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.chart.PieChart?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<ScrollPane fitToWidth="true" styleClass="main-content-scroll" xmlns="http://javafx.com/javafx/22" xmlns:fx="http://javafx.com/fxml/1" fx:controller="backend.controllers.ReportsController" stylesheets="@style.css">
+    <VBox spacing="25.0" style="-fx-background-color: #F8F9FA;">
+        <padding>
+            <Insets top="30.0" right="30.0" bottom="30.0" left="30.0"/>
+        </padding>
+
+        <HBox alignment="CENTER_LEFT" spacing="20.0">
+            <VBox spacing="5.0">
+                <Label text="Финансови отчети и анализи" styleClass="dashboard-title"/>
+                <Label text="Административен панел (Само за Мениджъри)" style="-fx-text-fill: #DC2626; -fx-font-weight: bold; -fx-font-size: 12px;"/>
+            </VBox>
+            <Region HBox.hgrow="ALWAYS"/>
+            <HBox spacing="10.0" alignment="CENTER">
+                <Button text="📅 01 Май 2026 - 31 Май 2026" styleClass="secondary-action-btn" style="-fx-font-size: 13px;"/>
+                <Button text="📊 Експорт на отчет" styleClass="secondary-action-btn" style="-fx-font-size: 13px; -fx-background-color: #1A1D20; -fx-text-fill: #FFFFFF;"/>
+            </HBox>
+        </HBox>
+
+        <GridPane hgap="20.0" vgap="10.0">
+            <columnConstraints>
+                <ColumnConstraints hgrow="ALWAYS" percentWidth="25.0"/>
+                <ColumnConstraints hgrow="ALWAYS" percentWidth="25.0"/>
+                <ColumnConstraints hgrow="ALWAYS" percentWidth="25.0"/>
+                <ColumnConstraints hgrow="ALWAYS" percentWidth="25.0"/>
+            </columnConstraints>
+            <rowConstraints>
+                <RowConstraints minHeight="100.0" prefHeight="100.0"/>
+            </rowConstraints>
+            <children>
+                <VBox styleClass="kpi-card" GridPane.columnIndex="0" spacing="5.0">
+                    <Label text="ОБЩ ПРИХОД" styleClass="kpi-title"/>
+                    <Label text="14,520 BGN" styleClass="kpi-value" style="-fx-font-size: 24px;"/>
+                    <Label text="▲ +12% спрямо миналия месец" style="-fx-text-fill: #16A34A; -fx-font-size: 11px; -fx-font-weight: bold;"/>
+                </VBox>
+                <VBox styleClass="kpi-card" GridPane.columnIndex="1" spacing="5.0">
+                    <Label text="НОВИ ЧЛЕНОВЕ" styleClass="kpi-title"/>
+                    <Label text="84" styleClass="kpi-value" style="-fx-font-size: 24px;"/>
+                    <Label text="Регистрирани през периода" style="-fx-text-fill: #6B7280; -fx-font-size: 11px;"/>
+                </VBox>
+                <VBox styleClass="kpi-card" GridPane.columnIndex="2" spacing="5.0">
+                    <Label text="ОБЩО АКТИВНИ ЧЛЕНОВЕ" styleClass="kpi-title"/>
+                    <Label text="1,240" styleClass="kpi-value" style="-fx-font-size: 24px;"/>
+                    <Label text="Текущи валидни карти" style="-fx-text-fill: #16A34A; -fx-font-size: 11px; -fx-font-weight: bold;"/>
+                </VBox>
+                <VBox styleClass="kpi-card" GridPane.columnIndex="3" spacing="5.0">
+                    <Label text="ИЗТИЧАЩИ АБОНАМЕНТИ (30 ДНИ)" styleClass="kpi-title"/>
+                    <Label text="115" styleClass="kpi-value" style="-fx-font-size: 24px; -fx-text-fill: #D97706;"/>
+                    <Label text="Изискват подновяване" style="-fx-text-fill: #6B7280; -fx-font-size: 11px;"/>
+                </VBox>
+            </children>
+        </GridPane>
+
+        <HBox spacing="20.0" prefHeight="320.0">
+            <VBox prefWidth="600.0" HBox.hgrow="ALWAYS" styleClass="details-panel" spacing="10.0">
+                <padding>
+                    <Insets top="15.0" right="20.0" bottom="15.0" left="20.0"/>
+                </padding>
+                <Label text="Приходи по типове абонаменти" styleClass="section-title" style="-fx-font-size: 16px;"/>
+                <HBox alignment="CENTER" VBox.vgrow="ALWAYS">
+                    <PieChart fx:id="revenueChart" labelsVisible="true" legendVisible="true" prefHeight="200.0" prefWidth="300.0" HBox.hgrow="ALWAYS"/>
+                    <VBox spacing="8.0" alignment="CENTER_LEFT" style="-fx-background-color: #F9FAFB; -fx-padding: 15px; -fx-background-radius: 5px; -fx-min-width: 220px;">
+                        <Label text="Продажби по служители:" style="-fx-font-weight: bold; -fx-text-fill: #1A1D20; -fx-font-size: 12px;"/>
+                        <Separator />
+                        <Label text="👤 Мария: 6,200 BGN" style="-fx-text-fill: #4B5563; -fx-font-size: 13px;"/>
+                        <Label text="👤 Иван: 5,100 BGN" style="-fx-text-fill: #4B5563; -fx-font-size: 13px;"/>
+                    </VBox>
+                </HBox>
+            </VBox>
+
+            <VBox prefWidth="400.0" minWidth="350.0" styleClass="details-panel" spacing="15.0">
+                <padding>
+                    <Insets top="15.0" right="20.0" bottom="15.0" left="20.0"/>
+                </padding>
+                <Label text="Популярност на груповите тренировки" styleClass="section-title" style="-fx-font-size: 16px;"/>
+                <Separator />
+
+                <VBox spacing="12.0" VBox.vgrow="ALWAYS" alignment="CENTER">
+                    <VBox spacing="4.0">
+                        <HBox>
+                            <Label text="Кросфит" style="-fx-font-weight: bold; -fx-text-fill: #1A1D20;"/>
+                            <Region HBox.hgrow="ALWAYS"/>
+                            <Label text="90% (Ср. 18/20 участници)" style="-fx-text-fill: #4B5563; -fx-font-size: 12px;"/>
+                        </HBox>
+                        <ProgressBar progress="0.90" prefWidth="400.0" styleClass="custom-progress-bar" style="-fx-accent: #84CC16;"/>
+                    </VBox>
+
+                    <VBox spacing="4.0">
+                        <HBox>
+                            <Label text="Бокс" style="-fx-font-weight: bold; -fx-text-fill: #1A1D20;"/>
+                            <Region HBox.hgrow="ALWAYS"/>
+                            <Label text="70% (Ср. 14/20 участници)" style="-fx-text-fill: #4B5563; -fx-font-size: 12px;"/>
+                        </HBox>
+                        <ProgressBar progress="0.70" prefWidth="400.0" styleClass="custom-progress-bar" style="-fx-accent: #3B82F6;"/>
+                    </VBox>
+
+                    <VBox spacing="4.0">
+                        <HBox>
+                            <Label text="Йога / Пилатес" style="-fx-font-weight: bold; -fx-text-fill: #1A1D20;"/>
+                            <Region HBox.hgrow="ALWAYS"/>
+                            <Label text="53% (Ср. 8/15 участници)" style="-fx-text-fill: #4B5563; -fx-font-size: 12px;"/>
+                        </HBox>
+                        <ProgressBar progress="0.53" prefWidth="400.0" styleClass="custom-progress-bar" style="-fx-accent: #6B7280;"/>
+                    </VBox>
+                </VBox>
+            </VBox>
+        </HBox>
+
+        <VBox styleClass="details-panel" spacing="10.0" VBox.vgrow="ALWAYS">
+            <padding>
+                <Insets top="15.0" right="20.0" bottom="15.0" left="20.0"/>
+            </padding>
+            <Label text="Ефективност и натовареност на треньорите" styleClass="section-title" style="-fx-font-size: 16px;"/>
+            <TableView fx:id="coachTable" prefHeight="200.0" styleClass="custom-table">
+                <columns>
+                    <TableColumn fx:id="colCoachName" text="Име на треньор" prefWidth="250.0" />
+                    <TableColumn fx:id="colSpecialization" text="Специализация" prefWidth="200.0" />
+                    <TableColumn fx:id="colClassesCount" text="Проведени тренировки (Месец)" prefWidth="250.0" style="-fx-alignment: CENTER;" />
+                    <TableColumn fx:id="colTotalMembers" text="Общо преминали членове" prefWidth="250.0" style="-fx-alignment: CENTER;" />
+                </columns>
+                <columnResizePolicy>
+                    <TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/>
+                </columnResizePolicy>
+            </TableView>
+        </VBox>
+    </VBox>
+</ScrollPane>

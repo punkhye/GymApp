@@ -1,4 +1,6 @@
 import javafx.application.Application;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.layout.StackPane;
@@ -21,12 +23,26 @@ public class Main extends Application {
             label = new Label("DB Connection FAILED!");
         }
 
-        StackPane root = new StackPane(label);
-        Scene scene = new Scene(root, 400, 300);
+        try {
+            // Използваме относителния път, който работи навсякъде локално
+            java.io.File fxmlFile = new java.io.File("./src/main/resources/frontend/views/HomePage.fxml");
 
-        stage.setTitle("JavaFX App");
-        stage.setScene(scene);
-        stage.show();
+            if (!fxmlFile.exists()) {
+                System.out.println("❌ Файлът не е намерен на: " + fxmlFile.getAbsolutePath());
+            }
+
+            FXMLLoader loader = new FXMLLoader(fxmlFile.toURI().toURL());
+            Parent root = loader.load();
+
+            Scene scene = new Scene(root, 1280, 768);
+            stage.setTitle("GymApp - Начало");
+            stage.setScene(scene);
+            stage.show();
+
+        } catch (Exception e) {
+            System.err.println("Грешка при зареждането на FXML дизайна!");
+            e.printStackTrace();
+        }
     }
 
     public static void main(String[] args) {
