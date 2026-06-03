@@ -65,9 +65,6 @@
                     <ColumnConstraints hgrow="ALWAYS"/>
                 </columnConstraints>
                 <children>
-                    <Label text="Дата на закупуване:" style="-fx-text-fill: #6B7280; -fx-font-weight: bold;" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
-                    <Label fx:id="lblPurchaseDate" text="--" style="-fx-text-fill: #1A1D20;" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
-
                     <Label text="Промяна статус:" style="-fx-text-fill: #6B7280; -fx-font-weight: bold;" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
                     <ComboBox fx:id="comboStatusEdit" styleClass="filter-combo" style="-fx-pref-width: 180px; -fx-pref-height: 30px;" GridPane.rowIndex="1" GridPane.columnIndex="1"/>
                 </children>

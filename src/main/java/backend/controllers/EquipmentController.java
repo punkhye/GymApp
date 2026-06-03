@@ -12,25 +12,27 @@ import javafx.stage.Stage;
 
 public class EquipmentController {
 
-    // TABLE
+    // tablica
     @FXML private TableView<EquipmentRow> equipmentTable;
     @FXML private TableColumn<EquipmentRow, String> colId;
     @FXML private TableColumn<EquipmentRow, String> colName;
     @FXML private TableColumn<EquipmentRow, String> colType;
     @FXML private TableColumn<EquipmentRow, String> colStatus;
 
-    // DETAILS PANEL
+    // detaili desniq panel
     @FXML private Label lblPanelTitle;
     @FXML private Label lblPurchaseDate;
     @FXML private ComboBox<String> comboStatusEdit;
     @FXML private TextArea txtMaintenanceLogs;
 
-    // STATS
+    // statove
     @FXML private Label lblTotal;
     @FXML private Label lblRepair;
     @FXML private Label lblOut;
 
-    private ObservableList<EquipmentRow> equipmentList;
+    // lista s uredi
+    private final ObservableList<EquipmentRow> equipmentList =
+            FXCollections.observableArrayList();
 
     private HomeController mainController;
 
@@ -42,6 +44,8 @@ public class EquipmentController {
         colType.setCellValueFactory(d -> d.getValue().type);
         colStatus.setCellValueFactory(d -> d.getValue().statusText);
 
+        equipmentTable.setItems(equipmentList);
+
         comboStatusEdit.setItems(FXCollections.observableArrayList(
                 "Operational",
                 "Under Repair",
@@ -51,21 +55,22 @@ public class EquipmentController {
         loadEquipmentFromDB();
         loadStatsFromDB();
 
-        equipmentTable.getSelectionModel().selectedItemProperty().addListener((obs, oldSel, newSel) -> {
-            if (newSel != null) {
-                lblPanelTitle.setText("Детайли: " + newSel.name.get());
-                lblPurchaseDate.setText(newSel.purchaseDate);
-                comboStatusEdit.setValue(newSel.statusText.get());
-                txtMaintenanceLogs.setText(newSel.maintenanceLogs);
-            }
-        });
+        equipmentTable.getSelectionModel()
+                .selectedItemProperty()
+                .addListener((obs, oldSel, newSel) -> {
+                    if (newSel != null) {
+                        lblPanelTitle.setText("Детайли: " + newSel.name.get());
+                        comboStatusEdit.setValue(newSel.statusText.get());
+                        txtMaintenanceLogs.setText(newSel.maintenanceLogs);
+                    }
+                });
     }
 
     public void setMainController(HomeController mainController) {
         this.mainController = mainController;
     }
 
-    // OPEN DIALOG
+    //buton // otvarqne na dialoga za suzdavane na ured
     @FXML
     private void openCreateEquipmentForm() {
         try {
@@ -85,8 +90,11 @@ public class EquipmentController {
             EquipmentRow result = controller.getResult();
 
             if (result != null) {
-                addEquipment(result);
                 saveToDatabase(result);
+
+                //refreshvane
+                loadEquipmentFromDB();
+                loadStatsFromDB();
             }
 
         } catch (Exception e) {
@@ -94,14 +102,7 @@ public class EquipmentController {
         }
     }
 
-    // dobavqne na tablicata i refreshvane na cqlata informaciq na stranicata
-    public void addEquipment(EquipmentRow row) {
-        equipmentList.add(row);
-        loadStatsFromDB();
-        loadEquipmentFromDB();
-    }
-
-    // SAVE TO DB
+    // zapazvane v database-a
     private void saveToDatabase(EquipmentRow row) {
 
         String sql = """
@@ -125,10 +126,10 @@ public class EquipmentController {
         }
     }
 
-    // LOAD TABLE
+    // zarejdane na tablica
     private void loadEquipmentFromDB() {
 
-        equipmentList = FXCollections.observableArrayList();
+        equipmentList.clear();
 
         String sql = "SELECT id, name, type, status, notes FROM equipment";
 
@@ -140,7 +141,7 @@ public class EquipmentController {
             while (rs.next()) {
 
                 EquipmentRow row = new EquipmentRow(
-                        "EQ-" + rs.getInt("id"),
+                        String.valueOf(rs.getInt("id")),
                         rs.getString("name"),
                         rs.getString("type"),
                         rs.getString("status"),
@@ -151,14 +152,12 @@ public class EquipmentController {
                 equipmentList.add(row);
             }
 
-            equipmentTable.setItems(equipmentList);
-
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    // STATS
+    // statove
     private void loadStatsFromDB() {
 
         String sql = """
@@ -175,7 +174,6 @@ public class EquipmentController {
              var rs = stmt.executeQuery()) {
 
             if (rs.next()) {
-
                 lblTotal.setText("Общо машини: " + rs.getInt("total"));
                 lblRepair.setText("В ремонт: " + rs.getInt("repair"));
                 lblOut.setText("Извън употреба: " + rs.getInt("out"));
