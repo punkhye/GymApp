@@ -41,6 +41,14 @@ public class CreateEquipmentDialogController {
             return;
         }
 
+        String notes = notesField.getText();
+
+        if (notes != null && !notes.isBlank()) {
+            notes = notes + " *" + LocalDate.now() + "*";
+        } else {
+            notes = null;
+        }
+
         result = new EquipmentController.EquipmentRow(
                 "NEW",
                 nameField.getText(),
@@ -49,7 +57,7 @@ public class CreateEquipmentDialogController {
                 purchaseDateField.getValue() != null
                         ? purchaseDateField.getValue().toString()
                         : LocalDate.now().toString(),
-                notesField.getText()
+                notes
         );
 
         close();

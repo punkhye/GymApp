@@ -31,7 +31,7 @@
         <padding>
             <Insets top="10.0" right="15.0" bottom="10.0" left="15.0"/>
         </padding>
-        <TextField promptText="🔍 Търси оборудване по име или ID..." HBox.hgrow="ALWAYS" styleClass="search-field"/>
+        <TextField promptText="🔍 Търси оборудване по име..." HBox.hgrow="ALWAYS" styleClass="search-field"/>
         <ComboBox promptText="Всички статуси" styleClass="filter-combo" style="-fx-pref-width: 180px;"/>
     </HBox>
 
@@ -78,11 +78,23 @@
 
             <Separator />
 
-            <Label text="История на поддръжката и бележки" styleClass="kpi-title" style="-fx-text-fill: #1A1D20;"/>
-            <TextArea fx:id="txtMaintenanceLogs" VBox.vgrow="ALWAYS" styleClass="log-area" wrapText="true" />
+            <Label text="История на поддръжката"/>
+
+            <TextArea fx:id="txtMaintenanceLogs"
+                      VBox.vgrow="ALWAYS"
+                      wrapText="true"
+                      editable="false"/>
+
+            <TextArea fx:id="txtNewLogEntry"
+                      promptText="Напиши нов запис..."
+                      prefRowCount="3"
+                      wrapText="true"/>
 
             <HBox spacing="10.0" alignment="CENTER_RIGHT">
-                <Button text="+ Добави запис" styleClass="secondary-action-btn" style="-fx-padding: 8px 15px; -fx-font-size: 13px;"/>
+                <Button text="+ Добави запис"
+                        styleClass="secondary-action-btn"
+                        style="-fx-padding: 8px 15px; -fx-font-size: 13px;"
+                        onAction="#onAddLog"/>
                 <Button text="Запази промените" styleClass="primary-action-btn" style="-fx-padding: 8px 15px; -fx-font-size: 13px;"/>
             </HBox>
         </VBox>

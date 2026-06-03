@@ -28,6 +28,12 @@ public class EquipmentController {
     @FXML private Label lblPurchaseDate;
     @FXML private ComboBox<String> comboStatusEdit;
     @FXML private TextArea txtMaintenanceLogs;
+    @FXML private TextArea txtNewLogEntry;
+
+    private String originalNotes = null;
+    private EquipmentRow selectedRow = null;
+
+
 
     // statove
     @FXML private Label lblTotal;
@@ -63,16 +69,33 @@ public class EquipmentController {
         equipmentTable.getSelectionModel()
                 .selectedItemProperty()
                 .addListener((obs, oldSel, newSel) -> {
-                    if (newSel != null) {
-                        lblPanelTitle.setText("Детайли: " + newSel.name.get());
-                        comboStatusEdit.setValue(newSel.statusText.get());
-                        txtMaintenanceLogs.setText(newSel.maintenanceLogs);
 
+                    if (newSel == null) {
+                        selectedRow = null;
+                        originalNotes = null;
 
-                        lblPurchaseDate.setText(
-                                newSel.purchaseDate.get()
-                        );
+                        txtMaintenanceLogs.clear();
+                        txtNewLogEntry.clear();
+
+                        lblPanelTitle.setText("Детайли на активен уред");
+                        lblPurchaseDate.setText("");
+                        comboStatusEdit.setValue(null);
+                        return;
                     }
+
+                    selectedRow = newSel;
+                    originalNotes = newSel.maintenanceLogs;
+
+                    lblPanelTitle.setText("Детайли: " + newSel.name.get());
+                    lblPurchaseDate.setText(newSel.purchaseDate.get());
+                    comboStatusEdit.setValue(newSel.statusText.get());
+
+                    txtMaintenanceLogs.setText(
+                            newSel.maintenanceLogs == null ? "" : newSel.maintenanceLogs
+                    );
+
+
+                    txtNewLogEntry.clear();
                 });
 
         equipmentTable.setRowFactory(tv -> new TableRow<>() {
@@ -160,6 +183,25 @@ public class EquipmentController {
         }
     }
 
+    //updatevane na notes v bazata danni
+    private void updateNotesInDB(String id, String notes) {
+
+        String sql = "UPDATE equipment SET notes = ? WHERE id = ?";
+
+        var conn = DBConnection.getConnection();
+
+        try (var stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, notes);
+            stmt.setInt(2, Integer.parseInt(id));
+
+            stmt.executeUpdate();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
     // zarejdane na tablica
     private void loadEquipmentFromDB() {
 
@@ -218,7 +260,45 @@ public class EquipmentController {
         }
     }
 
-    // MODEL
+    //updatevane na loga pri butona "dobavqne na zapis"
+    @FXML
+    private void onAddLog() {
+
+        if (selectedRow == null) {
+            return;
+        }
+
+        String newEntry = txtNewLogEntry.getText();
+
+        if (newEntry == null || newEntry.isBlank()) {
+            return;
+        }
+
+        String timestamp = LocalDate.now().toString();
+
+        String existingLogs = selectedRow.maintenanceLogs;
+        if (existingLogs == null) existingLogs = "";
+
+        String updatedLogs;
+
+        if (existingLogs.isBlank()) {
+            updatedLogs = newEntry + " (" + timestamp + ")";
+        } else {
+            updatedLogs = existingLogs + "\n" + newEntry + " (" + timestamp + ")";
+        }
+
+        // update model
+        selectedRow.maintenanceLogs = updatedLogs;
+
+        // update DB
+        updateNotesInDB(selectedRow.id.get(), updatedLogs);
+
+        // update UI instantly (no reload needed)
+        txtMaintenanceLogs.setText(updatedLogs);
+        txtNewLogEntry.clear();
+    }
+
+    // model
     public static class EquipmentRow {
 
         public final javafx.beans.property.SimpleStringProperty id;
