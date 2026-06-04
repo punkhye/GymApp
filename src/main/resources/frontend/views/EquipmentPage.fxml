@@ -31,8 +31,14 @@
         <padding>
             <Insets top="10.0" right="15.0" bottom="10.0" left="15.0"/>
         </padding>
-        <TextField promptText="🔍 Търси оборудване по име..." HBox.hgrow="ALWAYS" styleClass="search-field"/>
-        <ComboBox promptText="Всички статуси" styleClass="filter-combo" style="-fx-pref-width: 180px;"/>
+        <TextField fx:id="txtSearchEquipment"
+                   promptText="🔍 Търси оборудване по име..."
+                   HBox.hgrow="ALWAYS"
+                   styleClass="search-field"/>
+        <ComboBox fx:id="comboStatusFilter"
+                  promptText="Всички статуси"
+                  styleClass="filter-combo"
+                  style="-fx-pref-width: 180px;"/>
     </HBox>
 
     <HBox spacing="20.0" VBox.vgrow="ALWAYS">

@@ -13,6 +13,8 @@ import javafx.stage.Stage;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import javafx.collections.transformation.FilteredList;
+import javafx.collections.transformation.SortedList;
 
 import java.time.LocalDate;
 
@@ -25,6 +27,8 @@ public class EquipmentController {
     @FXML private TableColumn<EquipmentRow, String> colType;
     @FXML private TableColumn<EquipmentRow, String> colPurchaseDate;
     @FXML private TableColumn<EquipmentRow, String> colStatus;
+    @FXML private TextField txtSearchEquipment;
+    @FXML private ComboBox<String> comboStatusFilter;
 
     //za listener-a
     private EquipmentRow selectedRow = null;
@@ -45,6 +49,7 @@ public class EquipmentController {
     // lista s uredi
     private final ObservableList<EquipmentRow> equipmentList =
             FXCollections.observableArrayList();
+    private FilteredList<EquipmentRow> filteredEquipmentList;
 
     private HomeController mainController;
 
@@ -57,13 +62,29 @@ public class EquipmentController {
         colPurchaseDate.setCellValueFactory(d -> d.getValue().purchaseDate);
         colStatus.setCellValueFactory(d -> d.getValue().statusText);
 
-        equipmentTable.setItems(equipmentList);
+        filteredEquipmentList = new FilteredList<>(equipmentList, row -> true);
+
+        SortedList<EquipmentRow> sortedEquipmentList = new SortedList<>(filteredEquipmentList);
+        sortedEquipmentList.comparatorProperty().bind(equipmentTable.comparatorProperty());
+
+        equipmentTable.setItems(sortedEquipmentList);
 
         comboStatusEdit.setItems(FXCollections.observableArrayList(
                 "Operational",
                 "Under Repair",
                 "Out of Service"
         ));
+        comboStatusFilter.setItems(FXCollections.observableArrayList(
+                "Всички статуси",
+                "Operational",
+                "Under Repair",
+                "Out of Service"
+        ));
+
+        comboStatusFilter.setValue("Всички статуси");
+
+        txtSearchEquipment.textProperty().addListener((obs, oldValue, newValue) -> applyEquipmentFilters());
+        comboStatusFilter.valueProperty().addListener((obs, oldValue, newValue) -> applyEquipmentFilters());
 
         loadEquipmentFromDB();
         loadStatsFromDB();
@@ -412,6 +433,30 @@ public class EquipmentController {
         alert.showAndWait();
     }
 
+    private void applyEquipmentFilters() {
+        String searchText = txtSearchEquipment.getText();
+        String selectedStatus = comboStatusFilter.getValue();
+
+        filteredEquipmentList.setPredicate(row -> {
+            boolean matchesSearch = true;
+            boolean matchesStatus = true;
+
+            if (searchText != null && !searchText.isBlank()) {
+                String lowerSearch = searchText.toLowerCase();
+
+                matchesSearch =
+                        row.id.get().toLowerCase().contains(lowerSearch)
+                                || row.name.get().toLowerCase().contains(lowerSearch)
+                                || row.type.get().toLowerCase().contains(lowerSearch);
+            }
+
+            if (selectedStatus != null && !selectedStatus.equals("Всички статуси")) {
+                matchesStatus = row.statusText.get().equals(selectedStatus);
+            }
+
+            return matchesSearch && matchesStatus;
+        });
+    }
     // model
     public static class EquipmentRow {
 
