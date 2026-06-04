@@ -41,3 +41,5 @@ build/
 ### database ###
 src/main/java/database/db.properties
 database/db.properties
+**/db.properties
+
