@@ -10,6 +10,13 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import database.DBConnection;
+
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.Statement;
+import java.sql.Timestamp;
+import backend.controllers.ScheduleService;
 
 public class ScheduleController {
 
@@ -29,14 +36,11 @@ public class ScheduleController {
     @FXML
     public void initialize() {
         // Генерираме динамично заглавния ред (дните) и левите колони (часовете)
+        System.out.println("SCHEDULE INIT");
         setupCalendarHeaders();
         setupTimeRows();
+        loadSchedules();
 
-        // Карта 1: Кросфит (Понеделник -> Колона 1, часови слот 18:30 -> Ред 4)
-        createClassCard("CrossFit", "Димитър", "Зала 1","18:30", "🔥 17/20 Записани", "#DC2626", 1, 4);
-
-        // Карта 2: Йога (Вторник -> Колона 2, часови слот 19:30 -> Ред 5)
-        createClassCard("Йога", "Елена", "Зала 2",    "19:30","🟢 8/15 Записани", "#84CC16", 2, 5);
     }
 
     /**
@@ -76,6 +80,14 @@ public class ScheduleController {
                 // Добавяме карта към календара
                 TrainingRow row =
                         controller.getResult();
+
+                ScheduleService.saveSchedule(
+                        row.getType(),
+                        row.getTrainer(),
+                        row.getHall(),
+                        row.getDate(),
+                        row.getTime()
+                );
 
                 trainings.add(row);
 
@@ -163,6 +175,135 @@ public class ScheduleController {
         }
     }
 
+    private void loadSchedules() {
+
+        try {
+
+            Connection conn =
+                    DBConnection.getConnection();
+
+            Statement st =
+                    conn.createStatement();
+
+            ResultSet rs =
+                    st.executeQuery(
+
+                            """
+                            SELECT
+                                wt.name,
+                                c.first_name,
+                                s.hall_name,
+                                s.start_time
+    
+                            FROM schedules s
+    
+                            JOIN workout_types wt
+                            ON wt.id = s.workout_type_id
+    
+                            JOIN coaches c
+                            ON c.id = s.coach_id
+                            """
+
+                    );
+
+            while (rs.next()) {
+
+                String workoutName =
+                        rs.getString("name");
+
+                String trainerName =
+                        rs.getString("first_name");
+
+                String hallName =
+                        rs.getString("hall_name");
+
+                Timestamp start =
+                        rs.getTimestamp("start_time");
+
+                String hour =
+                        start
+                                .toLocalDateTime()
+                                .toLocalTime()
+                                .toString()
+                                .substring(0, 5);
+
+                int column =
+                        start
+                                .toLocalDateTime()
+                                .getDayOfWeek()
+                                .getValue();
+
+                int calendarRow;
+
+                switch (hour) {
+
+                    case "08:30":
+                        calendarRow = 1;
+                        break;
+
+                    case "10:00":
+                        calendarRow = 2;
+                        break;
+
+                    case "12:00":
+                        calendarRow = 3;
+                        break;
+
+                    case "17:00":
+                        calendarRow = 4;
+                        break;
+
+                    case "18:30":
+                        calendarRow = 5;
+                        break;
+
+                    case "19:30":
+                        calendarRow = 6;
+                        break;
+
+                    default:
+                        continue;
+
+                }
+
+                createClassCard(
+
+                        workoutName,
+
+                        trainerName,
+
+                        hallName,
+
+                        hour,
+
+                        "🟢 Записани",
+
+                        "#2563EB",
+
+                        column,
+
+                        calendarRow
+
+                );
+
+            }
+
+            rs.close();
+
+            st.close();
+
+            conn.close();
+
+        }
+
+        catch (Exception e) {
+
+            e.printStackTrace();
+
+        }
+
+    }
+
     /**
      * Помощен метод за софтуерно сглобяване и стилизиране на заоблена карта за тренировка (VBox).
      * Разполага я на точно зададени координати (col, row) в календара.
@@ -221,6 +362,8 @@ public class ScheduleController {
 
         // Поставяме готовата карта на точната й софтуерна позиция в решетката
         calendarGrid.add(card, col, row);
+
+
     }
     /**
      * Временен обект за прехвърляне на данните
