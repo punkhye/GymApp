@@ -119,6 +119,23 @@ public class HomeController {
     }
 
     @FXML
+    public void handleEmployeesMenu() {
+        try {
+            File fxmlFile = new File("./src/main/resources/frontend/views/EmployeesPage.fxml");
+            FXMLLoader loader = new FXMLLoader(fxmlFile.toURI().toURL());
+            VBox equipmentView = loader.load();
+
+            EmployeesController employeesController = loader.getController();
+            employeesController.setMainController(this);
+
+            mainLayout.setCenter(equipmentView);
+            setActiveMenu(btnEquipment);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @FXML
     public void handleReportsMenu() {
         try {
             File fxmlFile = new File("./src/main/resources/frontend/views/ReportsPage.fxml");
