@@ -207,7 +207,7 @@ public class EquipmentController {
         String sql = """
         UPDATE equipment
         SET status = ?,
-            notes = COALESCE(notes, '') || ?
+        notes = COALESCE(notes, '') || ?
         WHERE id = ?
     """;
 
@@ -339,13 +339,13 @@ public class EquipmentController {
 
         String date = LocalDate.now().toString();
 
-        // 1. update model
+        // updateva ui
         selectedRow.statusText.set(newStatus);
 
-        // 2. update DB (status + log)
+        // updateva db
         updateStatusAndLog(selectedRow.id.get(), newStatus, oldStatus, date);
 
-        // 3. update UI
+        // refreshvash ui
         loadEquipmentFromDB();
         loadStatsFromDB();
     }
