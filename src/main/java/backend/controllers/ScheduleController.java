@@ -6,6 +6,10 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.*;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Scene;
+import javafx.stage.Modality;
+import javafx.stage.Stage;
 
 public class ScheduleController {
 
@@ -19,6 +23,9 @@ public class ScheduleController {
         this.mainController = mainController;
     }
 
+    private static final java.util.List<TrainingRow> trainings =
+            new java.util.ArrayList<>();
+
     @FXML
     public void initialize() {
         // Генерираме динамично заглавния ред (дните) и левите колони (часовете)
@@ -26,10 +33,101 @@ public class ScheduleController {
         setupTimeRows();
 
         // Карта 1: Кросфит (Понеделник -> Колона 1, часови слот 18:30 -> Ред 4)
-        createClassCard("CrossFit", "Димитър", "Зала 1", "🔥 17/20 Записани", "#DC2626", 1, 4);
+        createClassCard("CrossFit", "Димитър", "Зала 1","18:30", "🔥 17/20 Записани", "#DC2626", 1, 4);
 
         // Карта 2: Йога (Вторник -> Колона 2, часови слот 19:30 -> Ред 5)
-        createClassCard("Йога", "Елена", "Зала 2", "🟢 8/15 Записани", "#84CC16", 2, 5);
+        createClassCard("Йога", "Елена", "Зала 2",    "19:30","🟢 8/15 Записани", "#84CC16", 2, 5);
+    }
+
+    /**
+     * Отваря диалогов прозорец за добавяне на нова тренировка.
+     * Използва отделен FXML екран.
+     */
+    @FXML
+    private void onCreateTraining() {
+
+        try {
+
+            // Зареждаме екрана за създаване
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/frontend/views/CreateTrainingDialog.fxml"));
+            // Създаваме отделен прозорец
+            Stage stage = new Stage();
+
+            // Зареждаме интерфейса
+            Scene scene = new Scene(loader.load());
+
+            stage.setScene(scene);
+
+            // Заглавие
+            stage.setTitle("Добавяне на тренировка");
+
+            // Блокира основния прозорец
+            stage.initModality(Modality.APPLICATION_MODAL);
+
+            // Показва прозореца
+            stage.showAndWait();
+
+            // Вземаме контролера
+            CreateTrainingDialogController controller = loader.getController();
+            // Проверка дали е затворен със Save
+            if (
+                    controller.hasResult()
+            ) {
+                // Добавяме карта към календара
+                TrainingRow row =
+                        controller.getResult();
+
+                trainings.add(row);
+
+                int column =
+                        java.time.LocalDate
+                                .parse(
+                                        row.getDate()
+                                )
+                                .getDayOfWeek()
+                                .getValue();
+
+                String time =
+                        row.getTime();
+
+                int calendarRow;
+
+                switch (time) {
+                    case "08:30":
+                        calendarRow = 1;
+                        break;
+                    case "10:00":
+                        calendarRow = 2;
+                        break;
+                    case "12:00":
+                        calendarRow = 3;
+                        break;
+                    case "17:00":
+                        calendarRow = 4;
+                        break;
+                    case "18:30":
+                        calendarRow = 5;
+                        break;
+                    case "19:30":
+                        calendarRow = 6;
+                        break;
+                    default:
+                        calendarRow = 5;
+                }
+
+                createClassCard(
+                        row.getType(),
+                        row.getTrainer(),
+                        row.getHall(),
+                        row.getTime(),
+                        "🟢 0/" + row.getCapacity() + " Записани", "#2563EB", column, calendarRow
+                );
+            }
+        }
+
+        catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     /**
@@ -69,7 +167,16 @@ public class ScheduleController {
      * Помощен метод за софтуерно сглобяване и стилизиране на заоблена карта за тренировка (VBox).
      * Разполага я на точно зададени координати (col, row) в календара.
      */
-    private void createClassCard(String title, String coach, String room, String badgeText, String accentColor, int col, int row) {
+    private void createClassCard(
+            String title,
+            String coach,
+            String room,
+            String time,
+            String badgeText,
+            String accentColor,
+            int col,
+            int row
+    ) {
         VBox card = new VBox(5);
         // Задаваме бял фон, сенки и дебела лява цветна линия (-fx-border-color) за визуален акцент
         card.setStyle("-fx-background-color: #FFFFFF; " +
@@ -94,13 +201,16 @@ public class ScheduleController {
         Label lblRoom = new Label("Зала: " + room);
         lblRoom.setStyle("-fx-text-fill: #6B7280; -fx-font-size: 12px;");
 
+        Label lblTime = new Label("Час: " + time);
+        lblTime.setStyle("-fx-text-fill:#6B7280; -fx-font-size:12px;");
+
         Label lblBadge = new Label(badgeText);
         // Сменяме цвета на текста на баджа на червено при запълнен капацитет, иначе е зелен
         lblBadge.setStyle("-fx-font-weight: bold; -fx-font-size: 11px; -fx-text-fill: " +
                 (accentColor.equals("#DC2626") ? "#DC2626" : "#4F8A10") + ";");
 
         // Набиваме всички контроли като деца на вертикалния контейнер (VBox)
-        card.getChildren().addAll(lblTitle, lblCoach, lblRoom, lblBadge);
+        card.getChildren().addAll(lblTitle, lblCoach, lblRoom, lblTime, lblBadge);
 
         // КРИТИЧНО ИЗИСКВАНЕ: Създаване и инсталиране на Tooltip (Попъп), който изскача при задържане на мишката
         Tooltip actionTooltip = new Tooltip();
@@ -111,5 +221,72 @@ public class ScheduleController {
 
         // Поставяме готовата карта на точната й софтуерна позиция в решетката
         calendarGrid.add(card, col, row);
+    }
+    /**
+     * Временен обект за прехвърляне на данните
+     * от диалога към календара.
+     */
+    public static class TrainingRow {
+
+        private String id;
+
+        private String type;
+
+        private String trainer;
+
+        private String hall;
+
+        private String date;
+
+        private String time;
+
+        private Integer capacity;
+
+        public TrainingRow(
+                String id,
+                String type,
+                String trainer,
+                String hall,
+                String date,
+                String time,
+                Integer capacity
+        ) {
+
+            this.id = id;
+            this.type = type;
+            this.trainer = trainer;
+            this.hall = hall;
+            this.date = date;
+            this.time = time;
+            this.capacity = capacity;
+
+        }
+
+        public String getId() {
+            return id;
+        }
+
+        public String getType() {
+            return type;
+        }
+
+        public String getTrainer() {
+            return trainer;
+        }
+
+        public String getHall() {
+            return hall;
+        }
+
+        public String getDate() {
+            return date;
+        }
+
+        public String getTime() { return time; }
+
+        public Integer getCapacity() {
+            return capacity;
+        }
+
     }
 }

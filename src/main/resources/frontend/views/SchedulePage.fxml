@@ -17,7 +17,7 @@
         <Region HBox.hgrow="ALWAYS"/>
         <HBox spacing="10.0">
             <Button text="⚙ Управление на типове" styleClass="secondary-action-btn"/>
-            <Button text="+ Нова тренировка" styleClass="primary-action-btn"/>
+            <Button text="+ Нова тренировка" styleClass="primary-action-btn" onAction="#onCreateTraining"/>
         </HBox>
     </HBox>
 

@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox spacing="12"
+      xmlns="http://javafx.com/javafx/22"
+      xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="backend.controllers.CreateTrainingDialogController"
+      prefWidth="400">
+    <padding>
+        <Insets
+                top="20"
+                right="20"
+                bottom="20"
+                left="20"/>
+    </padding>
+
+    <Label text="Добавяне на тренировка"/>
+
+    <TextField
+            fx:id="typeField"
+            promptText="Вид тренировка"/>
+
+    <TextField
+            fx:id="trainerField"
+            promptText="Треньор"/>
+
+    <TextField
+            fx:id="hallField"
+            promptText="Зала"/>
+
+    <DatePicker
+            fx:id="dateField"/>
+
+    <TextField
+            fx:id="timeField"
+            promptText="Час (пример 18:30)"/>
+
+    <Spinner
+            fx:id="capacityField"/>
+
+    <HBox spacing="10">
+
+        <Button
+                text="Отказ"
+                onAction="#onCancel"/>
+
+        <Button
+                text="Запази"
+                onAction="#onSave"/>
+
+    </HBox>
+
+</VBox>
