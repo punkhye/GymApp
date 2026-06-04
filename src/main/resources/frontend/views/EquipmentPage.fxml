@@ -95,6 +95,10 @@
                         styleClass="secondary-action-btn"
                         style="-fx-padding: 8px 15px; -fx-font-size: 13px;"
                         onAction="#onAddLog"/>
+                <Button text="Изтрий оборудване"
+                        styleClass="secondary-action-btn"
+                        style="-fx-padding: 8px 15px; -fx-font-size: 13px;"
+                        onAction="#handleDeleteEquipment"/>
                 <Button text="Запази промените"
                         styleClass="primary-action-btn"
                         style="-fx-padding: 8px 15px; -fx-font-size: 13px;"
