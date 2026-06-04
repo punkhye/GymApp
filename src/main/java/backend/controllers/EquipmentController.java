@@ -10,6 +10,9 @@ import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 
 import java.time.LocalDate;
 
@@ -350,6 +353,65 @@ public class EquipmentController {
         loadStatsFromDB();
     }
 
+    private boolean deleteEquipmentFromDB(String id) {
+        String sql = "DELETE FROM equipment WHERE id = ?";
+
+        var conn = DBConnection.getConnection();
+
+        try (var stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, Integer.parseInt(id));
+
+            int affectedRows = stmt.executeUpdate();
+            return affectedRows > 0;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            showAlert(Alert.AlertType.ERROR, "Грешка с базата", "Оборудването не беше изтрито от базата.");
+            return false;
+        }
+    }
+
+    @FXML
+    private void handleDeleteEquipment() {
+        EquipmentRow selected = equipmentTable.getSelectionModel().getSelectedItem();
+
+        if (selected == null) {
+            showAlert(Alert.AlertType.WARNING, "Няма избран уред", "Моля, избери оборудване от таблицата.");
+            return;
+        }
+
+        Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
+        confirm.setTitle("Потвърждение");
+        confirm.setHeaderText("Изтриване на оборудване");
+        confirm.setContentText("Потвърждение, че искате да изтриете: " + selected.name.get() + "?");
+
+        confirm.showAndWait().ifPresent(response -> {
+            if (response == ButtonType.OK) {
+                boolean deleted = deleteEquipmentFromDB(selected.id.get());
+
+                if (deleted) {
+                    loadEquipmentFromDB();
+                    loadStatsFromDB();
+
+                    lblPanelTitle.setText("Детайли на активен уред");
+                    lblPurchaseDate.setText("--");
+                    comboStatusEdit.setValue(null);
+                    txtMaintenanceLogs.clear();
+                    txtNewLogEntry.clear();
+
+                    showAlert(Alert.AlertType.INFORMATION, "Изтрито", "Оборудването е изтрито успешно.");
+                }
+            }
+        });
+    }
+    private void showAlert(Alert.AlertType type, String title, String message) {
+        Alert alert = new Alert(type);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        alert.showAndWait();
+    }
+
     // model
     public static class EquipmentRow {
 
@@ -373,4 +435,6 @@ public class EquipmentController {
             this.maintenanceLogs = logs;
         }
     }
+
+
 }
