@@ -37,6 +37,7 @@
                 <Button fx:id="btnSchedule" text="📅 График и Тренировки" styleClass="sidebar-btn" onAction="#handleScheduleMenu"/>
                 <Button fx:id="btnEquipment" text="🏋️‍♂️ Оборудване" styleClass="sidebar-btn" onAction="#handleEquipmentMenu"/>
                 <Button fx:id="btnReports" text="📊 Отчети и Анализи" styleClass="sidebar-btn" onAction="#handleReportsMenu"/>
+                <Button fx:id="btnEmployees" text="Служители" styleClass="sidebar-btn" onAction="#handleEmployeesMenu"/>
             </VBox>
 
             <Button fx:id="btnLogout" text="⌱ Изход" styleClass="logout-btn" onAction="#handleLogout"/>

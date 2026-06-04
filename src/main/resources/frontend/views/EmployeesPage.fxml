@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox xmlns="http://javafx.com/javafx/22"
+      xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="backend.controllers.EmployeesController"
+      spacing="20.0"
+      stylesheets="@style.css">
+
+    <padding>
+        <Insets top="30" right="30" bottom="30" left="30"/>
+    </padding>
+
+
+    <HBox spacing="20.0" alignment="CENTER_LEFT">
+        <Label text="Служители" styleClass="dashboard-title"/>
+        <Region HBox.hgrow="ALWAYS"/>
+        <Button text="+ Добави служител"/>
+    </HBox>
+
+
+    <TableView fx:id="employeesTable" VBox.vgrow="ALWAYS">
+
+        <columns>
+            <TableColumn fx:id="colId" text="ID"/>
+            <TableColumn fx:id="colFirstName" text="Име"/>
+            <TableColumn fx:id="colLastName" text="Фамилия"/>
+            <TableColumn fx:id="colUsername" text="Username"/>
+            <TableColumn fx:id="colRole" text="Роля"/>
+        </columns>
+
+    </TableView>
+
+</VBox>
