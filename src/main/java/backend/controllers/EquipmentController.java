@@ -8,16 +8,10 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
-
-import javafx.geometry.Insets;
-import javafx.scene.layout.GridPane;
-import java.util.Optional;
-
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 
 import java.time.LocalDate;
-
 
 public class EquipmentController {
 
@@ -378,124 +372,5 @@ public class EquipmentController {
             this.purchaseDate = new SimpleStringProperty(purchaseDate);
             this.maintenanceLogs = logs;
         }
-    }
-    @FXML
-    private void handleAddEquipment() {
-        Dialog<EquipmentRow> dialog = new Dialog<>();
-        dialog.setTitle("Добавяне на ново оборудване");
-        dialog.setHeaderText("Въведи данните за новия уред");
-
-        ButtonType addButtonType = new ButtonType("Добави", ButtonBar.ButtonData.OK_DONE);
-        dialog.getDialogPane().getButtonTypes().addAll(addButtonType, ButtonType.CANCEL);
-
-        TextField txtId = new TextField();
-        txtId.setPromptText("Напр. EQ-050");
-
-        TextField txtName = new TextField();
-        txtName.setPromptText("Напр. Bench Press");
-
-        TextField txtType = new TextField();
-        txtType.setPromptText("Напр. Strength");
-
-        ComboBox<String> statusBox = new ComboBox<>();
-        statusBox.setItems(FXCollections.observableArrayList(
-                "🟢 Operational",
-                "🔧 Under Repair",
-                "❌ Out of Service"
-        ));
-        statusBox.setValue("🟢 Operational");
-
-        TextField txtPurchaseDate = new TextField();
-        txtPurchaseDate.setPromptText("Напр. 03 Юни 2026");
-
-        TextArea txtLogs = new TextArea();
-        txtLogs.setPromptText("Бележки за поддръжка...");
-        txtLogs.setPrefRowCount(4);
-
-        GridPane grid = new GridPane();
-        grid.setHgap(10);
-        grid.setVgap(10);
-        grid.setPadding(new Insets(20, 150, 10, 10));
-
-        grid.add(new Label("Asset ID:"), 0, 0);
-        grid.add(txtId, 1, 0);
-
-        grid.add(new Label("Име:"), 0, 1);
-        grid.add(txtName, 1, 1);
-
-        grid.add(new Label("Тип:"), 0, 2);
-        grid.add(txtType, 1, 2);
-
-        grid.add(new Label("Статус:"), 0, 3);
-        grid.add(statusBox, 1, 3);
-
-        grid.add(new Label("Дата на закупуване:"), 0, 4);
-        grid.add(txtPurchaseDate, 1, 4);
-
-        grid.add(new Label("Бележки:"), 0, 5);
-        grid.add(txtLogs, 1, 5);
-
-        dialog.getDialogPane().setContent(grid);
-
-        dialog.setResultConverter(dialogButton -> {
-            if (dialogButton == addButtonType) {
-                if (txtId.getText().trim().isEmpty() || txtName.getText().trim().isEmpty()) {
-                    showAlert(Alert.AlertType.WARNING, "Грешка", "Asset ID и име на уреда са задължителни.");
-                    return null;
-                }
-
-                return new EquipmentRow(
-                        txtId.getText().trim(),
-                        txtName.getText().trim(),
-                        txtType.getText().trim(),
-                        statusBox.getValue(),
-                        txtPurchaseDate.getText().trim(),
-                        txtLogs.getText().trim()
-                );
-            }
-
-            return null;
-        });
-
-        Optional<EquipmentRow> result = dialog.showAndWait();
-
-        result.ifPresent(newEquipment -> {
-            equipmentTable.getItems().add(newEquipment);
-            equipmentTable.getSelectionModel().select(newEquipment);
-            equipmentTable.scrollTo(newEquipment);
-            showAlert(Alert.AlertType.INFORMATION, "Успешно", "Новото оборудване е добавено.");
-        });
-    }
-
-    @FXML
-    private void handleSaveChanges() {
-        EquipmentRow selected = equipmentTable.getSelectionModel().getSelectedItem();
-
-        if (selected == null) {
-            showAlert(Alert.AlertType.WARNING, "Няма избран уред", "Моля, избери уред от таблицата.");
-            return;
-        }
-
-        String newStatus = comboStatusEdit.getValue();
-
-        if (newStatus == null || newStatus.trim().isEmpty()) {
-            showAlert(Alert.AlertType.WARNING, "Грешка", "Моля, избери статус.");
-            return;
-        }
-
-        selected.statusText.set(newStatus);
-        selected.maintenanceLogs = txtMaintenanceLogs.getText();
-
-        equipmentTable.refresh();
-
-        showAlert(Alert.AlertType.INFORMATION, "Запазено", "Промените са запазени успешно.");
-    }
-
-    private void showAlert(Alert.AlertType type, String title, String message) {
-        Alert alert = new Alert(type);
-        alert.setTitle(title);
-        alert.setHeaderText(null);
-        alert.setContentText(message);
-        alert.showAndWait();
     }
 }
