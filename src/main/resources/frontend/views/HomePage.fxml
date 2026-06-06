@@ -18,7 +18,7 @@
             <Region HBox.hgrow="ALWAYS" />
 
             <HBox alignment="CENTER" spacing="15.0">
-                <Label text="Служител: Иван Иванов (Admin)" styleClass="user-info-text"/>
+                <Label fx:id="lblLoggedUser" text="..." styleClass="user-info-text"/>
                 <Separator orientation="VERTICAL" prefHeight="20.0"/>
                 <Label text="03 Юни 2026" styleClass="date-text"/>
             </HBox>
@@ -33,11 +33,11 @@
 
             <VBox spacing="8.0" VBox.vgrow="ALWAYS" alignment="TOP_CENTER" style="-fx-alignment: TOP_CENTER;">
                 <Button fx:id="btnDashboard" text="❖ Бърз Check-in" styleClass="sidebar-btn, sidebar-btn-active" onAction="#handleDashboardMenu"/>
+                <Button fx:id="btnEmployees" text="👔 Служители" styleClass="sidebar-btn" onAction="#handleEmployeesMenu"/>
                 <Button fx:id="btnMembers" text="👥 Членове на клуба" styleClass="sidebar-btn" onAction="#handleMembersMenu"/>
                 <Button fx:id="btnSchedule" text="📅 График и Тренировки" styleClass="sidebar-btn" onAction="#handleScheduleMenu"/>
                 <Button fx:id="btnEquipment" text="🏋️‍♂️ Оборудване" styleClass="sidebar-btn" onAction="#handleEquipmentMenu"/>
                 <Button fx:id="btnReports" text="📊 Отчети и Анализи" styleClass="sidebar-btn" onAction="#handleReportsMenu"/>
-                <Button fx:id="btnEmployees" text="Служители" styleClass="sidebar-btn" onAction="#handleEmployeesMenu"/>
             </VBox>
 
             <Button fx:id="btnLogout" text="⌱ Изход" styleClass="logout-btn" onAction="#handleLogout"/>
@@ -59,7 +59,7 @@
                             <Circle radius="5.0" fill="#84cc16"/>
                             <Label text="Активни Членове" styleClass="kpi-title"/>
                         </HBox>
-                        <Label text="1,240" styleClass="kpi-value"/>
+                        <Label fx:id="lblActiveMembers" text="..." styleClass="kpi-value"/>
                     </VBox>
 
                     <VBox styleClass="kpi-card" HBox.hgrow="ALWAYS" spacing="10.0">
@@ -67,14 +67,14 @@
                             <Circle radius="5.0" fill="#eab308"/>
                             <Label text="Изтичащи Абонаменти (7 дни)" styleClass="kpi-title"/>
                         </HBox>
-                        <Label text="42" styleClass="kpi-value"/>
+                        <Label fx:id="lblExpiringSubscriptions" text="..." styleClass="kpi-value"/>
                     </VBox>
 
                     <VBox styleClass="kpi-card" HBox.hgrow="ALWAYS" spacing="10.0">
                         <HBox alignment="CENTER_LEFT">
                             <Label text="Месечен Приход" styleClass="kpi-title"/>
                         </HBox>
-                        <Label text="14,520 BGN" styleClass="kpi-value"/>
+                        <Label fx:id="lblMonthlyRevenue" text="..." styleClass="kpi-value"/>
                     </VBox>
                 </HBox>
 

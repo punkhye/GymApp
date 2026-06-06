@@ -9,6 +9,7 @@ import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
 import java.io.File;
+import backend.utils.SessionManager;
 
 public class LoginController {
 
@@ -24,6 +25,7 @@ public class LoginController {
         // ХАРДКОДНАТИ ДАННИ ЗА АДМИН: Проверка за съвпадение
         if (username.equals("admin") && password.equals("admin123")) {
             lblError.setVisible(false);
+            SessionManager.setLoggedInUsername(username);
             switchToMainApp();
         } else {
             // Показваме червеното съобщение за грешка при грешни данни

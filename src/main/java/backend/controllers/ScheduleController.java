@@ -1,292 +1,331 @@
 package backend.controllers;
 
+import database.DBConnection;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.scene.control.Tooltip;
-import javafx.scene.layout.*;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Scene;
-import javafx.stage.Modality;
-import javafx.stage.Stage;
+import javafx.scene.layout.GridPane;
+import javafx.scene.layout.VBox;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.time.DayOfWeek;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.YearMonth;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.TemporalAdjusters;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class ScheduleController {
 
-    // Основната решетка (календар), в която разполагаме часовете и картите с тренировки
     @FXML private GridPane calendarGrid;
+    @FXML private Label lblWeekRange;
+    @FXML private Button btnViewDay;
+    @FXML private Button btnViewWeek;
+    @FXML private Button btnViewMonth;
 
-    // Референция към главния контролер за координация на навигацията
     private HomeController mainController;
+    private LocalDate currentAnchorDate;
+    private String currentViewMode = "WEEK";
+
+    public static class TrainingRow {
+        private String id, type, trainer, hall, date, time;
+        private int capacity;
+        public TrainingRow(String id, String type, String trainer, String hall, String date, String time, int capacity) {
+            this.id = id; this.type = type; this.trainer = trainer; this.hall = hall; this.date = date; this.time = time; this.capacity = capacity;
+        }
+        public String getType() { return type; }
+        public String getTrainer() { return trainer; }
+        public String getHall() { return hall; }
+        public Integer getCapacity() { return capacity; }
+    }
 
     public void setMainController(HomeController mainController) {
         this.mainController = mainController;
     }
 
-    private static final java.util.List<TrainingRow> trainings =
-            new java.util.ArrayList<>();
-
     @FXML
     public void initialize() {
-        // Генерираме динамично заглавния ред (дните) и левите колони (часовете)
-        setupCalendarHeaders();
-        setupTimeRows();
-
-        // Карта 1: Кросфит (Понеделник -> Колона 1, часови слот 18:30 -> Ред 4)
-        createClassCard("CrossFit", "Димитър", "Зала 1","18:30", "🔥 17/20 Записани", "#DC2626", 1, 4);
-
-        // Карта 2: Йога (Вторник -> Колона 2, часови слот 19:30 -> Ред 5)
-        createClassCard("Йога", "Елена", "Зала 2",    "19:30","🟢 8/15 Записани", "#84CC16", 2, 5);
+        currentAnchorDate = LocalDate.now();
+        refreshCalendar();
     }
 
-    /**
-     * Отваря диалогов прозорец за добавяне на нова тренировка.
-     * Използва отделен FXML екран.
-     */
-    @FXML
-    private void onCreateTraining() {
+    private void refreshCalendar() {
+        calendarGrid.getChildren().clear();
+        updateLabelText();
+
+        switch (currentViewMode) {
+            case "DAY":
+                buildDayStructure();
+                loadDayData();
+                break;
+            case "WEEK":
+                buildWeekStructure();
+                loadWeekData();
+                break;
+            case "MONTH":
+                buildMonthStructure();
+                loadMonthData();
+                break;
+        }
+    }
+
+    private void buildDayStructure() {
+        Label hTime = new Label("Час");
+        hTime.getStyleClass().add("calendar-header-cell");
+        hTime.setStyle("-fx-font-weight: bold; -fx-padding: 10;");
+        calendarGrid.add(hTime, 0, 0);
+
+        Label hDay = new Label(currentAnchorDate.format(DateTimeFormatter.ofPattern("EEEE (dd.MM)")));
+        hDay.getStyleClass().add("calendar-header-cell");
+        hDay.setStyle("-fx-font-weight: bold; -fx-padding: 10;");
+        calendarGrid.add(hDay, 1, 0);
+
+        int rowIdx = 1;
+        for (int hour = 8; hour <= 21; hour++) {
+            Label timeLabel = new Label(String.format("%02d:00", hour));
+            timeLabel.getStyleClass().add("calendar-time-cell");
+            timeLabel.setStyle("-fx-font-weight: bold; -fx-padding: 15;");
+            calendarGrid.add(timeLabel, 0, rowIdx++);
+        }
+    }
+
+    private void loadDayData() {
+        String query = getBaseSQL() + " WHERE s.start_time::date = ? ORDER BY s.start_time ASC";
+        try {
+            Connection conn = DBConnection.getConnection();
+            try (PreparedStatement stmt = conn.prepareStatement(query)) {
+                stmt.setObject(1, currentAnchorDate);
+                try (ResultSet rs = stmt.executeQuery()) {
+                    while (rs.next()) {
+                        LocalDateTime startDateTime = rs.getTimestamp("start_time").toLocalDateTime();
+                        int rowIdx = startDateTime.getHour() - 8 + 1;
+                        if (rowIdx >= 1 && rowIdx <= 14) {
+                            calendarGrid.add(extractCard(rs), 1, rowIdx);
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) { e.printStackTrace(); }
+    }
+
+    private void buildWeekStructure() {
+        LocalDate startOfWeek = currentAnchorDate.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
+        String[] days = {"Час", "Понеделник", "Вторник", "Сряда", "Четвъртък", "Петък", "Събота", "Неделя"};
+
+        for (int i = 0; i < days.length; i++) {
+            Label dayLabel = (i == 0) ? new Label(days[i]) : new Label(days[i] + "\n(" + startOfWeek.plusDays(i - 1).format(DateTimeFormatter.ofPattern("dd.MM")) + ")");
+            dayLabel.getStyleClass().add("calendar-header-cell");
+            dayLabel.setStyle("-fx-font-weight: bold; -fx-padding: 12; -fx-alignment: center; -fx-max-width: 5000;");
+            calendarGrid.add(dayLabel, i, 0);
+        }
+
+        int rowIdx = 1;
+        for (int hour = 8; hour <= 21; hour++) {
+            Label timeLabel = new Label(String.format("%02d:00", hour));
+            timeLabel.getStyleClass().add("calendar-time-cell");
+            timeLabel.setStyle("-fx-font-weight: bold; -fx-padding: 15;");
+            calendarGrid.add(timeLabel, 0, rowIdx++);
+        }
+    }
+
+    private void loadWeekData() {
+        LocalDate startOfWeek = currentAnchorDate.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
+        LocalDate endOfWeek = startOfWeek.plusDays(6);
+
+        String query = getBaseSQL() + " WHERE s.start_time::date BETWEEN ? AND ? ORDER BY s.start_time ASC";
+        try {
+            Connection conn = DBConnection.getConnection();
+            try (PreparedStatement stmt = conn.prepareStatement(query)) {
+                stmt.setObject(1, startOfWeek);
+                stmt.setObject(2, endOfWeek);
+                try (ResultSet rs = stmt.executeQuery()) {
+                    while (rs.next()) {
+                        LocalDateTime startDateTime = rs.getTimestamp("start_time").toLocalDateTime();
+                        int columnIdx = startDateTime.getDayOfWeek().getValue();
+                        int rowIdx = startDateTime.getHour() - 8 + 1;
+                        if (rowIdx >= 1 && rowIdx <= 14) {
+                            calendarGrid.add(extractCard(rs), columnIdx, rowIdx);
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) { e.printStackTrace(); }
+    }
+
+    private void buildMonthStructure() {
+        calendarGrid.getColumnConstraints().clear();
+
+        for (int i = 0; i < 7; i++) {
+            javafx.scene.layout.ColumnConstraints col = new javafx.scene.layout.ColumnConstraints();
+            col.setPercentWidth(14.28);
+            calendarGrid.getColumnConstraints().add(col);
+        }
+
+        String[] days = {"Понеделник", "Вторник", "Сряда", "Четвъртък", "Петък", "Събота", "Неделя"};
+        for (int i = 0; i < days.length; i++) {
+            Label dayLabel = new Label(days[i]);
+            dayLabel.getStyleClass().add("calendar-header-cell");
+            dayLabel.setStyle("-fx-font-weight: bold; -fx-padding: 12; -fx-alignment: center; -fx-max-width: 5000;");
+            calendarGrid.add(dayLabel, i, 0);
+        }
+    }
+
+    // 🌟 ОПРАВЕНО: Връзката не се затваря автоматично и дизайнът е изчистен
+    private void loadMonthData() {
+        YearMonth yearMonth = YearMonth.from(currentAnchorDate);
+        LocalDate firstOfMonth = yearMonth.atDay(1);
+        LocalDate lastOfMonth = yearMonth.atEndOfMonth();
+
+        int leadDays = firstOfMonth.getDayOfWeek().getValue() - 1;
+
+        Map<LocalDate, List<String>> monthlyTrainings = new HashMap<>();
+        String query = getBaseSQL() + " WHERE s.start_time::date BETWEEN ? AND ? ORDER BY s.start_time ASC";
 
         try {
+            Connection conn = DBConnection.getConnection();
+            try (PreparedStatement stmt = conn.prepareStatement(query)) {
+                stmt.setObject(1, firstOfMonth);
+                stmt.setObject(2, lastOfMonth);
 
-            // Зареждаме екрана за създаване
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/frontend/views/CreateTrainingDialog.fxml"));
-            // Създаваме отделен прозорец
-            Stage stage = new Stage();
-
-            // Зареждаме интерфейса
-            Scene scene = new Scene(loader.load());
-
-            stage.setScene(scene);
-
-            // Заглавие
-            stage.setTitle("Добавяне на тренировка");
-
-            // Блокира основния прозорец
-            stage.initModality(Modality.APPLICATION_MODAL);
-
-            // Показва прозореца
-            stage.showAndWait();
-
-            // Вземаме контролера
-            CreateTrainingDialogController controller = loader.getController();
-            // Проверка дали е затворен със Save
-            if (
-                    controller.hasResult()
-            ) {
-                // Добавяме карта към календара
-                TrainingRow row =
-                        controller.getResult();
-
-                trainings.add(row);
-
-                int column =
-                        java.time.LocalDate
-                                .parse(
-                                        row.getDate()
-                                )
-                                .getDayOfWeek()
-                                .getValue();
-
-                String time =
-                        row.getTime();
-
-                int calendarRow;
-
-                switch (time) {
-                    case "08:30":
-                        calendarRow = 1;
-                        break;
-                    case "10:00":
-                        calendarRow = 2;
-                        break;
-                    case "12:00":
-                        calendarRow = 3;
-                        break;
-                    case "17:00":
-                        calendarRow = 4;
-                        break;
-                    case "18:30":
-                        calendarRow = 5;
-                        break;
-                    case "19:30":
-                        calendarRow = 6;
-                        break;
-                    default:
-                        calendarRow = 5;
+                try (ResultSet rs = stmt.executeQuery()) {
+                    while (rs.next()) {
+                        LocalDate date = rs.getTimestamp("start_time").toLocalDateTime().toLocalDate();
+                        String info = rs.getString("workout_name") + " (" + rs.getTimestamp("start_time").toLocalDateTime().getHour() + ":00)";
+                        monthlyTrainings.computeIfAbsent(date, k -> new ArrayList<>()).add(info);
+                    }
                 }
-
-                createClassCard(
-                        row.getType(),
-                        row.getTrainer(),
-                        row.getHall(),
-                        row.getTime(),
-                        "🟢 0/" + row.getCapacity() + " Записани", "#2563EB", column, calendarRow
-                );
             }
-        }
+        } catch (Exception e) { e.printStackTrace(); }
 
-        catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
+        for (int day = 1; day <= yearMonth.lengthOfMonth(); day++) {
+            int calcIdx = leadDays + day - 1;
+            int col = calcIdx % 7;
+            int row = (calcIdx / 7) + 1;
 
-    /**
-     * Динамично добавяне на дните от седмицата в най-горния ред (Ред 0) на GridPane
-     */
-    private void setupCalendarHeaders() {
-        String[] days = {"Час", "Пон (1.06)", "Вто (2.06)", "Сря (3.06)", "Чет (4.06)", "Пет (5.06)", "Съб (6.06)", "Нед (7.06)"};
-        for (int i = 0; i < days.length; i++) {
-            Label label = new Label(days[i]);
-            label.setStyle("-fx-font-weight: bold; -fx-text-fill: #4B5563; -fx-padding: 10px; -fx-font-size: 13px;");
-            // Методът .add(node, column, row) позиционира елемента в решетката
-            calendarGrid.add(label, i, 0);
-        }
-    }
+            VBox dayBox = new VBox(4);
+            dayBox.setPadding(new Insets(6));
+            dayBox.setStyle("-fx-border-color: #E2E8F0; -fx-border-width: 0.5; -fx-background-color: #FFFFFF; -fx-min-height: 100px; -fx-min-width: 135px;");
 
-    /**
-     * Динамично добавяне на часовите слотове по вертикала (Колона 0) и чертане на празни фонови клетки с тънки сиви линии
-     */
-    private void setupTimeRows() {
-        String[] hours = {"08:30", "10:00", "12:00", "17:00", "18:30", "19:30"};
-        for (int i = 0; i < hours.length; i++) {
-            // Поставяме етикета за час в първата колона (col: 0, row: i + 1)
-            Label hourLabel = new Label(hours[i]);
-            hourLabel.setStyle("-fx-font-weight: bold; -fx-text-fill: #6B7280; -fx-padding: 20px 0;");
-            calendarGrid.add(hourLabel, 0, i + 1);
+            Label lblDayNum = new Label(String.valueOf(day));
+            lblDayNum.setStyle("-fx-font-weight: bold; -fx-text-fill: #475569; -fx-font-size: 13px;");
+            dayBox.getChildren().add(lblDayNum);
 
-            // Обхождаме останалите 7 колони (за всеки ден), за да нарисуваме празни фонови кутийки (граници)
-            for (int col = 1; col <= 7; col++) {
-                Pane gridCell = new Pane();
-                gridCell.setStyle("-fx-border-color: #E5E7EB; -fx-border-width: 0 1 1 0; -fx-min-height: 90px;");
-                calendarGrid.add(gridCell, col, i + 1);
+            LocalDate targetDate = yearMonth.atDay(day);
+            if (monthlyTrainings.containsKey(targetDate)) {
+                for (String trainingText : monthlyTrainings.get(targetDate)) {
+                    Label lblShort = new Label(trainingText);
+
+                    lblShort.setMaxWidth(Double.MAX_VALUE);
+
+                    lblShort.setStyle("-fx-font-size: 10px; " +
+                            "-fx-font-weight: bold; " +
+                            "-fx-text-fill: #1E293B; " +
+                            "-fx-background-color: #F1F5F9; " +
+                            "-fx-border-color: #CBD5E1; " +
+                            "-fx-border-radius: 4; " +
+                            "-fx-background-radius: 4; " +
+                            "-fx-padding: 3 6 3 6; " +
+                            "-fx-max-width: 5000;");
+
+                    lblShort.setTextOverrun(javafx.scene.control.OverrunStyle.ELLIPSIS);
+                    dayBox.getChildren().add(lblShort);
+                }
             }
+
+            calendarGrid.add(dayBox, col, row);
         }
     }
 
-    /**
-     * Помощен метод за софтуерно сглобяване и стилизиране на заоблена карта за тренировка (VBox).
-     * Разполага я на точно зададени координати (col, row) в календара.
-     */
-    private void createClassCard(
-            String title,
-            String coach,
-            String room,
-            String time,
-            String badgeText,
-            String accentColor,
-            int col,
-            int row
-    ) {
-        VBox card = new VBox(5);
-        // Задаваме бял фон, сенки и дебела лява цветна линия (-fx-border-color) за визуален акцент
-        card.setStyle("-fx-background-color: #FFFFFF; " +
-                "-fx-background-radius: 6px; " +
-                "-fx-padding: 12px; " +
-                "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.06), 6, 0, 0, 2); " +
-                "-fx-border-color: transparent transparent transparent " + accentColor + "; " +
-                "-fx-border-width: 0 0 0 5px; " +
-                "-fx-border-radius: 6px; " +
-                "-fx-cursor: hand;");
-
-        // Добавяме вътрешен марж (отстъп), за да не се допира картата до сивите линии на календара
-        GridPane.setMargin(card, new Insets(4));
-
-        // Изграждане на текстовите етикети вътре в картата
-        Label lblTitle = new Label(title);
-        lblTitle.setStyle("-fx-font-weight: 800; -fx-text-fill: #1A1D20; -fx-font-size: 14px;");
-
-        Label lblCoach = new Label("Треньор: " + coach);
-        lblCoach.setStyle("-fx-text-fill: #4B5563; -fx-font-size: 12px;");
-
-        Label lblRoom = new Label("Зала: " + room);
-        lblRoom.setStyle("-fx-text-fill: #6B7280; -fx-font-size: 12px;");
-
-        Label lblTime = new Label("Час: " + time);
-        lblTime.setStyle("-fx-text-fill:#6B7280; -fx-font-size:12px;");
-
-        Label lblBadge = new Label(badgeText);
-        // Сменяме цвета на текста на баджа на червено при запълнен капацитет, иначе е зелен
-        lblBadge.setStyle("-fx-font-weight: bold; -fx-font-size: 11px; -fx-text-fill: " +
-                (accentColor.equals("#DC2626") ? "#DC2626" : "#4F8A10") + ";");
-
-        // Набиваме всички контроли като деца на вертикалния контейнер (VBox)
-        card.getChildren().addAll(lblTitle, lblCoach, lblRoom, lblTime, lblBadge);
-
-        // КРИТИЧНО ИЗИСКВАНЕ: Създаване и инсталиране на Tooltip (Попъп), който изскача при задържане на мишката
-        Tooltip actionTooltip = new Tooltip();
-        actionTooltip.setText("[📝 Запиши член]   [👁 Виж присъствени]");
-        actionTooltip.setStyle("-fx-background-color: #1A1D20; -fx-text-fill: #FFFFFF; -fx-font-size: 12px; -fx-font-weight: bold; -fx-padding: 8px;");
-        // Обвързваме направения Tooltip с конкретната VBox карта
-        Tooltip.install(card, actionTooltip);
-
-        // Поставяме готовата карта на точната й софтуерна позиция в решетката
-        calendarGrid.add(card, col, row);
+    private String getBaseSQL() {
+        return "SELECT s.id, wt.name AS workout_name, (c.first_name || ' ' || c.last_name) AS coach_name, s.hall_name, s.start_time " +
+                "FROM schedules s " +
+                "JOIN workout_types wt ON s.workout_type_id = wt.id " +
+                "JOIN coaches c ON s.coach_id = c.id";
     }
-    /**
-     * Временен обект за прехвърляне на данните
-     * от диалога към календара.
-     */
-    public static class TrainingRow {
 
-        private String id;
-
-        private String type;
-
-        private String trainer;
-
-        private String hall;
-
-        private String date;
-
-        private String time;
-
-        private Integer capacity;
-
-        public TrainingRow(
-                String id,
-                String type,
-                String trainer,
-                String hall,
-                String date,
-                String time,
-                Integer capacity
-        ) {
-
-            this.id = id;
-            this.type = type;
-            this.trainer = trainer;
-            this.hall = hall;
-            this.date = date;
-            this.time = time;
-            this.capacity = capacity;
-
-        }
-
-        public String getId() {
-            return id;
-        }
-
-        public String getType() {
-            return type;
-        }
-
-        public String getTrainer() {
-            return trainer;
-        }
-
-        public String getHall() {
-            return hall;
-        }
-
-        public String getDate() {
-            return date;
-        }
-
-        public String getTime() { return time; }
-
-        public Integer getCapacity() {
-            return capacity;
-        }
-
+    private VBox extractCard(ResultSet rs) throws Exception {
+        return createTrainingCard(rs.getString("workout_name"), rs.getString("coach_name"), rs.getString("hall_name"));
     }
+
+    private VBox createTrainingCard(String title, String coach, String room) {
+        VBox card = new VBox(4);
+        card.setPadding(new Insets(8));
+        card.setStyle("-fx-background-color: #F8FAFC; -fx-background-radius: 6; -fx-border-color: #E2E8F0; -fx-border-width: 1;");
+        Label lblTitle = new Label(title); lblTitle.setStyle("-fx-font-weight: bold; -fx-text-fill: #0F172A; -fx-font-size: 12px;");
+        Label lblCoach = new Label("👤 " + coach); lblCoach.setStyle("-fx-text-fill: #475569; -fx-font-size: 11px;");
+        Label lblRoom = new Label("📍 Зала " + room); lblRoom.setStyle("-fx-text-fill: #64748B; -fx-font-size: 11px;");
+        card.getChildren().addAll(lblTitle, lblCoach, lblRoom);
+        return card;
+    }
+
+    private void updateLabelText() {
+        DateTimeFormatter monthYearFormatter = DateTimeFormatter.ofPattern("MMMM yyyy");
+        if (currentViewMode.equals("DAY")) {
+            lblWeekRange.setText(currentAnchorDate.format(DateTimeFormatter.ofPattern("dd MMMM yyyy")));
+        } else if (currentViewMode.equals("WEEK")) {
+            LocalDate start = currentAnchorDate.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
+            LocalDate end = start.plusDays(6);
+            lblWeekRange.setText(start.format(DateTimeFormatter.ofPattern("dd MMM")) + " - " + end.format(DateTimeFormatter.ofPattern("dd MMM yyyy")));
+        } else {
+            lblWeekRange.setText(currentAnchorDate.format(monthYearFormatter).toUpperCase());
+        }
+    }
+
+    @FXML
+    private void handleNextWeek() {
+        if (currentViewMode.equals("DAY")) currentAnchorDate = currentAnchorDate.plusDays(1);
+        else if (currentViewMode.equals("WEEK")) currentAnchorDate = currentAnchorDate.plusWeeks(1);
+        else currentAnchorDate = currentAnchorDate.plusMonths(1);
+        refreshCalendar();
+    }
+
+    @FXML
+    private void handlePreviousWeek() {
+        if (currentViewMode.equals("DAY")) currentAnchorDate = currentAnchorDate.minusDays(1);
+        else if (currentViewMode.equals("WEEK")) currentAnchorDate = currentAnchorDate.minusWeeks(1);
+        else currentAnchorDate = currentAnchorDate.minusMonths(1);
+        refreshCalendar();
+    }
+
+    @FXML
+    private void handleCurrentWeek() {
+        currentAnchorDate = LocalDate.now();
+        refreshCalendar();
+    }
+
+    @FXML
+    private void handleViewDay() {
+        currentViewMode = "DAY";
+        setSegmentedActive(btnViewDay);
+        refreshCalendar();
+    }
+
+    @FXML
+    private void handleViewWeek() {
+        currentViewMode = "WEEK";
+        setSegmentedActive(btnViewWeek);
+        refreshCalendar();
+    }
+
+    @FXML
+    private void handleViewMonth() {
+        currentViewMode = "MONTH";
+        setSegmentedActive(btnViewMonth);
+        refreshCalendar();
+    }
+
+    private void setSegmentedActive(Button activeBtn) {
+        btnViewDay.getStyleClass().remove("segmented-btn-active");
+        btnViewWeek.getStyleClass().remove("segmented-btn-active");
+        btnViewMonth.getStyleClass().remove("segmented-btn-active");
+        activeBtn.getStyleClass().add("segmented-btn-active");
+    }
+
+    @FXML private void onCreateTraining() {}
 }

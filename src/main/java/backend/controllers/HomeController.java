@@ -1,5 +1,7 @@
 package backend.controllers;
 
+import backend.models.ScheduleItem;
+import backend.utils.SessionManager;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -7,25 +9,34 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
-import javafx.scene.control.ScrollPane;
-import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableView;
+import javafx.scene.control.*;
+import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.util.Properties;
+import database.DBConnection;
 
 public class HomeController {
-
+    @FXML private Label lblLoggedUser;
+    @FXML private Label lblActiveMembers;
+    @FXML private Label lblExpiringSubscriptions;
+    @FXML private Label lblMonthlyRevenue;
     // --- Таблица за днешния график (Начален екран / Dashboard) ---
-    @FXML private TableView<String[]> scheduleTable;
-    @FXML private TableColumn<String[], String> colTime;
-    @FXML private TableColumn<String[], String> colClassName;
-    @FXML private TableColumn<String[], String> colCoach;
-    @FXML private TableColumn<String[], String> colHall;
-    @FXML private TableColumn<String[], String> colSlots;
+    @FXML private TableView<ScheduleItem> scheduleTable;
+    @FXML private TableColumn<ScheduleItem, String> colTime;
+    @FXML private TableColumn<ScheduleItem, String> colClassName;
+    @FXML private TableColumn<ScheduleItem, String> colCoach;
+    @FXML private TableColumn<ScheduleItem, String> colHall;
+    @FXML private TableColumn<ScheduleItem, String> colSlots;
 
     // --- Бутони от страничното меню (Sidebar Navigation) ---
     @FXML private Button btnDashboard;
@@ -33,6 +44,7 @@ public class HomeController {
     @FXML private Button btnSchedule;
     @FXML private Button btnEquipment;
     @FXML private Button btnReports;
+    @FXML private Button btnEmployees;
 
     // Главният контейнер на приложението. В неговия център (.setCenter) сменяме екраните динамично
     @FXML private BorderPane mainLayout;
@@ -42,26 +54,106 @@ public class HomeController {
 
     @FXML
     public void initialize() {
-        // Ръчно свързване на колоните на таблицата с индексите от масива String[]
-        colTime.setCellValueFactory(data -> new SimpleStringProperty(data.getValue()[0]));
-        colClassName.setCellValueFactory(data -> new SimpleStringProperty(data.getValue()[1]));
-        colCoach.setCellValueFactory(data -> new SimpleStringProperty(data.getValue()[2]));
-        colHall.setCellValueFactory(data -> new SimpleStringProperty(data.getValue()[3]));
-        colSlots.setCellValueFactory(data -> new SimpleStringProperty(data.getValue()[4]));
+        lblLoggedUser.setText("Служител: " + SessionManager.getLoggedInUsername());
 
-        // При първоначално стартиране взимаме и запазваме ScrollPane-а, който е зареден в центъра
-        dashboardView = (javafx.scene.control.ScrollPane) mainLayout.getCenter();
+        // 2. Инициализиране на колоните на таблицата
+        colTime.setCellValueFactory(new PropertyValueFactory<>("time"));
+        colClassName.setCellValueFactory(new PropertyValueFactory<>("className"));
+        colCoach.setCellValueFactory(new PropertyValueFactory<>("coach"));
+        colHall.setCellValueFactory(new PropertyValueFactory<>("hall"));
+        colSlots.setCellValueFactory(new PropertyValueFactory<>("slots"));
 
-        // Примерни статични данни (Mock data) за днешния фитнес график
-        ObservableList<String[]> data = FXCollections.observableArrayList(
-                new String[]{"08:30", "Кросфит сутрин", "Алекс Тодоров", "Зала А", "15 / 20 Свободни"},
-                new String[]{"12:00", "Йога за начинаещи", "Мария Петрова", "Зала Б", "12 / 15 Свободни"},
-                new String[]{"18:30", "Бокс интензивен", "Димитър Берберов", "Зала Бокс", "🔥 Само 3 / 20 места остават! (Почти пълно)"},
-                new String[]{"19:30", "Аеробика", "Елена Георгиева", "Зала Б", "8 / 25 Свободни"}
-        );
-        scheduleTable.setItems(data);
+        // 3. Зареждане на данните
+        loadKPIStats();
+        loadTodaySchedule();
     }
 
+
+    private void loadKPIStats() {
+        String queryActive = "SELECT COUNT(*) FROM members";
+        String queryExpiring = "SELECT COUNT(*) FROM member_subscriptions WHERE end_date = CURRENT_DATE + INTERVAL '7 days'";
+
+        // 🌟 ВЕЧЕ Е НАПЪЛНО ТОЧНО И РЕАЛНО:
+        // Използваме вашите истински колони amount_paid и purchase_date
+        String queryRevenue =
+                "SELECT COALESCE(SUM(amount_paid), 0) FROM member_subscriptions " +
+                        "WHERE purchase_date >= DATE_TRUNC('month', CURRENT_DATE)";
+
+        try {
+            Connection conn = database.DBConnection.getConnection();
+
+            // 1. Активни членове
+            try (PreparedStatement stmt = conn.prepareStatement(queryActive); ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) lblActiveMembers.setText(String.format("%,d", rs.getInt(1)));
+            }
+
+            // 2. Изтичащи абонаменти
+            try (PreparedStatement stmt = conn.prepareStatement(queryExpiring); ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) lblExpiringSubscriptions.setText(String.valueOf(rs.getInt(1)));
+            }
+
+            // 3. Месечен приход
+            try (PreparedStatement stmt = conn.prepareStatement(queryRevenue); ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    double revenue = rs.getDouble(1);
+                    lblMonthlyRevenue.setText(String.format("%,.2f ЕВРО", revenue));
+                }
+            }
+
+        } catch (Exception e) {
+            System.err.println("Грешка при зареждане на KPI статистиките!");
+            e.printStackTrace();
+        }
+    }
+
+    private void loadTodaySchedule() {
+        ObservableList<ScheduleItem> todayClasses = FXCollections.observableArrayList();
+
+
+        // Събираме истинските имена на тренировките, треньорите и смятаме свободните места динамично!
+        String querySchedule =
+                "SELECT " +
+                        "   TO_CHAR(s.start_time, 'HH24:MI') AS class_time, " +
+                        "   wt.name AS class_name, " +
+                        "   (c.first_name || ' ' || c.last_name) AS coach_name, " +
+                        "   s.hall_name AS room_name, " +
+                        "   wt.max_participants AS max_slots, " +
+                        "   (SELECT COUNT(*) FROM workout_registrations wr WHERE wr.schedule_id = s.id) AS booked_slots " +
+                        "FROM schedules s " +
+                        "JOIN workout_types wt ON s.workout_type_id = wt.id " +
+                        "JOIN coaches c ON s.coach_id = c.id " +
+                        "WHERE s.start_time::date = CURRENT_DATE " +
+                        "ORDER BY s.start_time ASC";
+
+        try {
+            Connection conn = database.DBConnection.getConnection();
+
+            try (PreparedStatement stmt = conn.prepareStatement(querySchedule);
+                 ResultSet rs = stmt.executeQuery()) {
+
+                while (rs.next()) {
+                    String time = rs.getString("class_time");
+                    String className = rs.getString("class_name");
+                    String coach = rs.getString("coach_name");
+                    String room = rs.getString("room_name");
+
+                    // Изчисляваме реалните свободни места спрямо капацитета на тренировката
+                    int maxSlots = rs.getInt("max_slots");
+                    int bookedSlots = rs.getInt("booked_slots");
+                    int freeSlots = maxSlots - bookedSlots;
+
+                    String slotsText = freeSlots + " / " + maxSlots;
+
+                    todayClasses.add(new ScheduleItem(time, className, coach, "Зала " + room, slotsText));
+                }
+                scheduleTable.setItems(todayClasses);
+            }
+
+        } catch (Exception e) {
+            System.err.println("Грешка при зареждане на графика за днес!");
+            e.printStackTrace();
+        }
+    }
     // --- СЪБИТИЯ ПРИ КЛИК ВЪРХУ МЕНЮТАТА (Single Page Application Рутиране) ---
 
     @FXML
@@ -129,7 +221,7 @@ public class HomeController {
             employeesController.setMainController(this);
 
             mainLayout.setCenter(equipmentView);
-            setActiveMenu(btnEquipment);
+            setActiveMenu(btnEmployees);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -154,10 +246,22 @@ public class HomeController {
 
     @FXML
     public void handleDashboardMenu() {
-        // Връщане към началния екран: просто възстановяваме запазения в initialize() оригинален изглед
-        if (dashboardView != null) {
-            mainLayout.setCenter(dashboardView);
-            setActiveMenu(btnDashboard);
+        try {
+            File fxmlFile = new File("./src/main/resources/frontend/views/HomePage.fxml");
+            FXMLLoader loader = new FXMLLoader(fxmlFile.toURI().toURL());
+
+            // 🌟 ПРАВИЛНО: Кастваме към BorderPane, защото това е коренът на FXML файла!
+            BorderPane homeView = loader.load();
+
+            // Вземаме текущия прозорец (Stage) и сменяме цялата сцена
+            Stage stage = (Stage) btnDashboard.getScene().getWindow();
+            Scene scene = new Scene(homeView, 1280, 768);
+            stage.setScene(scene);
+            stage.show();
+
+        } catch (Exception e) {
+            System.err.println("Грешка при зареждане на HomePage.fxml!");
+            e.printStackTrace();
         }
     }
     @FXML
@@ -194,6 +298,7 @@ public class HomeController {
         btnSchedule.getStyleClass().remove("sidebar-btn-active");
         btnEquipment.getStyleClass().remove("sidebar-btn-active");
         btnReports.getStyleClass().remove("sidebar-btn-active");
+        btnEmployees.getStyleClass().remove("sidebar-btn-active");
 
         if (!activeButton.getStyleClass().contains("sidebar-btn-active")) {
             activeButton.getStyleClass().add("sidebar-btn-active");

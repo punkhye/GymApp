@@ -7,7 +7,7 @@ import javafx.scene.control.TableView;
 public class EmployeesController {
 
     @FXML private TableView<?> employeesTable;
-
+    @FXML private TableColumn<?, ?> colActions;
     @FXML private TableColumn<?, ?> colId;
     @FXML private TableColumn<?, ?> colFirstName;
     @FXML private TableColumn<?, ?> colLastName;
@@ -23,5 +23,9 @@ public class EmployeesController {
     @FXML
     public void initialize() {
 
+    }
+    @FXML
+    public void handleAddEmployee() {
+        System.out.println("Отваряне на прозорец за нов служител...");
     }
 }
