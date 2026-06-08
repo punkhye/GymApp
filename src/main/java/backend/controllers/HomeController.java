@@ -54,7 +54,7 @@ public class HomeController {
 
     @FXML
     public void initialize() {
-        lblLoggedUser.setText("Служител: " + SessionManager.getLoggedInUsername());
+        lblLoggedUser.setText("Служител: " + SessionManager.getUsername());
 
         // 2. Инициализиране на колоните на таблицата
         colTime.setCellValueFactory(new PropertyValueFactory<>("time"));

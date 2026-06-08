@@ -1,5 +1,8 @@
 package backend.controllers;
 
+import backend.utils.PasswordUtil;
+import backend.utils.SessionManager;
+import database.DBConnection;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -8,8 +11,9 @@ import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
-import java.io.File;
-import backend.utils.SessionManager;
+
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 
 public class LoginController {
 
@@ -19,38 +23,90 @@ public class LoginController {
 
     @FXML
     public void handleLogin() {
+
         String username = txtUsername.getText().trim();
         String password = txtPassword.getText();
 
-        // ХАРДКОДНАТИ ДАННИ ЗА АДМИН: Проверка за съвпадение
-        if (username.equals("admin") && password.equals("admin123")) {
-            lblError.setVisible(false);
-            SessionManager.setLoggedInUsername(username);
-            switchToMainApp();
-        } else {
-            // Показваме червеното съобщение за грешка при грешни данни
-            lblError.setVisible(true);
+        if (username.isEmpty() || password.isEmpty()) {
+            showError("Попълни всички полета");
+            return;
+        }
+
+        String sql = """
+                SELECT id,
+                       username,
+                       password_hash,
+                       role,
+                       is_active
+                FROM users
+                WHERE username = ?
+                """;
+
+        try {
+
+            PreparedStatement ps =
+                    DBConnection.getConnection().prepareStatement(sql);
+
+            ps.setString(1, username);
+
+            ResultSet rs = ps.executeQuery();
+
+            if (rs.next()) {
+
+                boolean active = rs.getBoolean("is_active");
+
+                // ako akaunta e neaktiven
+                if (!active) {
+                    showError("Акаунтът е деактивиран. Свържете се с администратор.");
+                    return;
+                }
+
+                String hash = rs.getString("password_hash");
+
+                // greshna parola
+                if (!PasswordUtil.verify(password, hash)) {
+                    showError("Грешна парола");
+                    return;
+                }
+
+                // uspeshno vlizane
+                SessionManager.setUser(
+                        rs.getInt("id"),
+                        rs.getString("username"),
+                        rs.getString("role")
+                );
+
+                switchToMainApp();
+
+            } else {
+                showError("Потребителят не съществува");
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            showError("Грешка в системата");
         }
     }
 
-    /**
-     * Превключва сцената от Login към основния HomePage интерфейс
-     */
+    private void showError(String msg) {
+        lblError.setText(msg);
+        lblError.setVisible(true);
+    }
+
     private void switchToMainApp() {
         try {
-            // Вземаме текущия прозорец (Stage)
             Stage stage = (Stage) txtUsername.getScene().getWindow();
 
-            // Зареждаме основното табло
-            File fxmlFile = new File("./src/main/resources/frontend/views/HomePage.fxml");
-            FXMLLoader loader = new FXMLLoader(fxmlFile.toURI().toURL());
+            FXMLLoader loader =
+                    new FXMLLoader(getClass().getResource("/frontend/views/HomePage.fxml"));
+
             Parent root = loader.load();
 
-            // Сменяме сцената с десктоп размерите на приложението
             Scene scene = new Scene(root, 1280, 768);
+
             stage.setScene(scene);
             stage.setTitle("GymApp - Начало");
-            stage.centerOnScreen(); // Центрираме новия голям прозорец
+            stage.centerOnScreen();
             stage.show();
 
         } catch (Exception e) {
