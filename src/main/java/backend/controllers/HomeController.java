@@ -26,35 +26,59 @@ import java.util.Properties;
 import database.DBConnection;
 
 public class HomeController {
-    @FXML private Label lblLoggedUser;
-    @FXML private Label lblActiveMembers;
-    @FXML private Label lblExpiringSubscriptions;
-    @FXML private Label lblMonthlyRevenue;
+    @FXML
+    private Label lblLoggedUser;
+    @FXML
+    private Label lblActiveMembers;
+    @FXML
+    private Label lblExpiringSubscriptions;
+    @FXML
+    private Label lblMonthlyRevenue;
     // --- Таблица за днешния график (Начален екран / Dashboard) ---
-    @FXML private TableView<ScheduleItem> scheduleTable;
-    @FXML private TableColumn<ScheduleItem, String> colTime;
-    @FXML private TableColumn<ScheduleItem, String> colClassName;
-    @FXML private TableColumn<ScheduleItem, String> colCoach;
-    @FXML private TableColumn<ScheduleItem, String> colHall;
-    @FXML private TableColumn<ScheduleItem, String> colSlots;
+    @FXML
+    private TableView<ScheduleItem> scheduleTable;
+    @FXML
+    private TableColumn<ScheduleItem, String> colTime;
+    @FXML
+    private TableColumn<ScheduleItem, String> colClassName;
+    @FXML
+    private TableColumn<ScheduleItem, String> colCoach;
+    @FXML
+    private TableColumn<ScheduleItem, String> colHall;
+    @FXML
+    private TableColumn<ScheduleItem, String> colSlots;
 
     // --- Бутони от страничното меню (Sidebar Navigation) ---
-    @FXML private Button btnDashboard;
-    @FXML private Button btnMembers;
-    @FXML private Button btnSchedule;
-    @FXML private Button btnEquipment;
-    @FXML private Button btnReports;
-    @FXML private Button btnEmployees;
+    @FXML
+    private Button btnDashboard;
+    @FXML
+    private Button btnMembers;
+    @FXML
+    private Button btnSchedule;
+    @FXML
+    private Button btnEquipment;
+    @FXML
+    private Button btnReports;
+    @FXML
+    private Button btnEmployees;
 
     // Главният контейнер на приложението. В неговия център (.setCenter) сменяме екраните динамично
-    @FXML private BorderPane mainLayout;
+    @FXML
+    private BorderPane mainLayout;
 
     // Кеш за началния изглед (Dashboard overview), за да не го презареждаме от FXML всеки път
     private javafx.scene.control.ScrollPane dashboardView;
 
     @FXML
     public void initialize() {
-        lblLoggedUser.setText("Служител: " + SessionManager.getUsername());
+        String role = SessionManager.getRole();
+
+        if ("ADMIN".equalsIgnoreCase(role)) {
+            lblLoggedUser.setText("Мениджър: " + SessionManager.getUsername());
+        } else {
+            lblLoggedUser.setText("Служител: " + SessionManager.getUsername());
+        }
+
 
         // 2. Инициализиране на колоните на таблицата
         colTime.setCellValueFactory(new PropertyValueFactory<>("time"));
@@ -212,35 +236,46 @@ public class HomeController {
 
     @FXML
     public void handleEmployeesMenu() {
-        try {
-            File fxmlFile = new File("./src/main/resources/frontend/views/EmployeesPage.fxml");
-            FXMLLoader loader = new FXMLLoader(fxmlFile.toURI().toURL());
-            VBox equipmentView = loader.load();
+        String role = SessionManager.getRole();
+        if ("ADMIN".equalsIgnoreCase(role)) {
+            try {
+                File fxmlFile = new File("./src/main/resources/frontend/views/EmployeesPage.fxml");
+                FXMLLoader loader = new FXMLLoader(fxmlFile.toURI().toURL());
+                VBox equipmentView = loader.load();
 
-            EmployeesController employeesController = loader.getController();
-            employeesController.setMainController(this);
+                EmployeesController employeesController = loader.getController();
+                employeesController.setMainController(this);
 
-            mainLayout.setCenter(equipmentView);
-            setActiveMenu(btnEmployees);
-        } catch (Exception e) {
-            e.printStackTrace();
+                mainLayout.setCenter(equipmentView);
+
+                setActiveMenu(btnEmployees);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }else{
+            showError("Нямаш достъп до тази функция");
         }
     }
 
     @FXML
     public void handleReportsMenu() {
-        try {
-            File fxmlFile = new File("./src/main/resources/frontend/views/ReportsPage.fxml");
-            FXMLLoader loader = new FXMLLoader(fxmlFile.toURI().toURL());
-            ScrollPane reportsView = loader.load(); // Тук коренът е ScrollPane
+        String role = SessionManager.getRole();
+        if ("ADMIN".equalsIgnoreCase(role)) {
+            try {
+                File fxmlFile = new File("./src/main/resources/frontend/views/ReportsPage.fxml");
+                FXMLLoader loader = new FXMLLoader(fxmlFile.toURI().toURL());
+                ScrollPane reportsView = loader.load(); // Тук коренът е ScrollPane
 
-            ReportsController reportsController = loader.getController();
-            reportsController.setMainController(this);
+                ReportsController reportsController = loader.getController();
+                reportsController.setMainController(this);
 
-            mainLayout.setCenter(reportsView);
-            setActiveMenu(btnReports);
-        } catch (Exception e) {
-            e.printStackTrace();
+                mainLayout.setCenter(reportsView);
+                setActiveMenu(btnReports);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }else{
+            showError("Нямаш достъп до тази функция");
         }
     }
 
@@ -293,15 +328,23 @@ public class HomeController {
      * Премахва зеления цвят (.sidebar-btn-active) от стария бутон и го слага на новонатиснатия.
      */
     private void setActiveMenu(Button activeButton) {
+
         btnDashboard.getStyleClass().remove("sidebar-btn-active");
         btnMembers.getStyleClass().remove("sidebar-btn-active");
         btnSchedule.getStyleClass().remove("sidebar-btn-active");
         btnEquipment.getStyleClass().remove("sidebar-btn-active");
         btnReports.getStyleClass().remove("sidebar-btn-active");
-        btnEmployees.getStyleClass().remove("sidebar-btn-active");
-
+            btnEmployees.getStyleClass().remove("sidebar-btn-active");
         if (!activeButton.getStyleClass().contains("sidebar-btn-active")) {
             activeButton.getStyleClass().add("sidebar-btn-active");
         }
+    }
+
+    private void showError(String msg) {
+        Alert alert = new Alert(Alert.AlertType.WARNING);
+        alert.setTitle("Грешка");
+        alert.setHeaderText(null);
+        alert.setContentText(msg);
+        alert.showAndWait();
     }
 }
