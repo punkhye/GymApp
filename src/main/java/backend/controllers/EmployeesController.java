@@ -1,5 +1,6 @@
 package backend.controllers;
 
+import backend.utils.SessionManager;
 import database.DBConnection;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -7,6 +8,7 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
@@ -163,6 +165,7 @@ public class EmployeesController {
         }
     }
 
+    //buton za dobavqne
     @FXML
     public void handleAddEmployee() {
 
@@ -186,4 +189,56 @@ public class EmployeesController {
             e.printStackTrace();
         }
     }
+
+    //buton za aktivirane/deaktivirane na akaunt
+    @FXML
+    public void handleToggleActive() {
+
+        Employee selected = employeesTable.getSelectionModel().getSelectedItem();
+
+        if (selected == null) {
+            showError("Избери служител първо");
+            return;
+        }
+
+        // da ne deaktivira sebe si
+        if (selected.getUsername().equals(SessionManager.getUsername())) {
+            showError("Не можеш да променяш активността на акаунта, с който си логнат.");
+            return;
+        }
+
+        boolean newStatus = !selected.isActive();
+
+        String sql = """
+            UPDATE users
+            SET is_active = ?
+            WHERE id = ?
+            """;
+
+        try {
+
+            PreparedStatement ps =
+                    DBConnection.getConnection().prepareStatement(sql);
+
+            ps.setBoolean(1, newStatus);
+            ps.setInt(2, selected.getId());
+
+            ps.executeUpdate();
+
+            loadEmployees(); // refresh
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            showError("Грешка при промяна на статус");
+        }
+    }
+
+    private void showError(String msg) {
+        Alert alert = new Alert(Alert.AlertType.WARNING);
+        alert.setTitle("Грешка");
+        alert.setHeaderText(null);
+        alert.setContentText(msg);
+        alert.showAndWait();
+    }
+
 }

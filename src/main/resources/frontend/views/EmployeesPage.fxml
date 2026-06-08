@@ -23,7 +23,7 @@
         <padding>
             <Insets top="10.0" right="15.0" bottom="10.0" left="15.0"/>
         </padding>
-        <TextField promptText="🔍 Търси по име, потребителско име или роля..." HBox.hgrow="ALWAYS" styleClass="search-field"/>
+        <TextField promptText="🔍 Търси по име..." HBox.hgrow="ALWAYS" styleClass="search-field"/>
         <ComboBox promptText="Роля: Всички" styleClass="filter-combo"/>
     </HBox>
 
@@ -42,8 +42,10 @@
     </TableView>
 
     <HBox alignment="CENTER_LEFT">
-        <Label text="Показани служители" styleClass="date-text"/>
         <Region HBox.hgrow="ALWAYS"/>
+        <Button text="Активирай / Деактивирай"
+                onAction="#handleToggleActive"
+                styleClass="primary-action-btn"/>
         <HBox spacing="5.0" alignment="CENTER">
             <Button text="&lt;" styleClass="pagination-btn"/>
             <Button text="1" styleClass="pagination-btn, pagination-btn-active"/>
