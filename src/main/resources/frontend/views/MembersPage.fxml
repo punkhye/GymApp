@@ -34,7 +34,7 @@
                   style="-fx-pref-width: 180px;"/>
         <Label text="Абонамент" style="-fx-font-size: 11px; -fx-text-fill: #6B7280;"/>
         <ComboBox fx:id="comboSubscriptionFilter"
-                  promptText="Абонамент: Всички"
+                  promptText="Абонамент: Всички."
                   styleClass="filter-combo"
                   style="-fx-pref-width: 180px;"/>
     </HBox>
