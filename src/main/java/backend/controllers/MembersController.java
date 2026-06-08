@@ -15,6 +15,9 @@ import java.sql.Statement;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 
+import javafx.collections.transformation.FilteredList;
+import javafx.collections.transformation.SortedList;
+
 public class MembersController {
 
     // --- JavaFX Компоненти на таблицата за клиенти ---
@@ -27,9 +30,13 @@ public class MembersController {
     @FXML private TableColumn<MemberRow, String> colType;
     @FXML private TableColumn<MemberRow, String> colExpiry;
     @FXML private TableColumn<MemberRow, String> colActions;
+    @FXML private TextField txtSearchMember;
+    @FXML private ComboBox<String> comboStatusFilter;
+    @FXML private ComboBox<String> comboSubscriptionFilter;
 
     private final ObservableList<MemberRow> membersList = FXCollections.observableArrayList();
     private final DateTimeFormatter displayDateFormatter = DateTimeFormatter.ofPattern("dd.MM.yyyy");
+    private FilteredList<MemberRow> filteredMembersList;
 
     private HomeController mainController;
 
@@ -89,7 +96,15 @@ public class MembersController {
             }
         });
 
-        membersTable.setItems(membersList);
+        filteredMembersList = new FilteredList<>(membersList, row -> true);
+
+        SortedList<MemberRow> sortedMembersList = new SortedList<>(filteredMembersList);
+        sortedMembersList.comparatorProperty().bind(membersTable.comparatorProperty());
+
+        membersTable.setItems(sortedMembersList);
+
+        setupMemberFilters();
+
         loadMembersFromDB();
     }
 
@@ -396,6 +411,7 @@ public class MembersController {
                 );
 
                 loadMembersFromDB();
+                applyMemberFilters();
             }
         });
     }
@@ -495,6 +511,77 @@ public class MembersController {
         alert.setHeaderText(null);
         alert.setContentText(message);
         alert.showAndWait();
+    }
+
+    private void setupMemberFilters() {
+        comboStatusFilter.setItems(FXCollections.observableArrayList(
+                "Всички",
+                "Active",
+                "Inactive"
+        ));
+        comboStatusFilter.setValue("Всички");
+
+        comboSubscriptionFilter.setItems(FXCollections.observableArrayList("Всички"));
+        comboSubscriptionFilter.setValue("Всички");
+
+        loadSubscriptionFilterOptions();
+
+        txtSearchMember.textProperty().addListener((obs, oldValue, newValue) -> applyMemberFilters());
+        comboStatusFilter.valueProperty().addListener((obs, oldValue, newValue) -> applyMemberFilters());
+        comboSubscriptionFilter.valueProperty().addListener((obs, oldValue, newValue) -> applyMemberFilters());
+    }
+
+    private void loadSubscriptionFilterOptions() {
+        String sql = """
+            SELECT name
+            FROM subscription_types
+            ORDER BY id
+            """;
+
+        var conn = DBConnection.getConnection();
+
+        try (var stmt = conn.prepareStatement(sql);
+             var rs = stmt.executeQuery()) {
+
+            while (rs.next()) {
+                comboSubscriptionFilter.getItems().add(rs.getString("name"));
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void applyMemberFilters() {
+        String searchText = txtSearchMember.getText();
+        String selectedStatus = comboStatusFilter.getValue();
+        String selectedSubscription = comboSubscriptionFilter.getValue();
+
+        filteredMembersList.setPredicate(member -> {
+            boolean matchesSearch = true;
+            boolean matchesStatus = true;
+            boolean matchesSubscription = true;
+
+            if (searchText != null && !searchText.isBlank()) {
+                String lowerSearch = searchText.toLowerCase();
+
+                matchesSearch =
+                        member.id.get().toLowerCase().contains(lowerSearch)
+                                || member.name.get().toLowerCase().contains(lowerSearch)
+                                || member.phone.get().toLowerCase().contains(lowerSearch)
+                                || member.email.get().toLowerCase().contains(lowerSearch);
+            }
+
+            if (selectedStatus != null && !selectedStatus.equals("Всички")) {
+                matchesStatus = member.status.get().equals(selectedStatus);
+            }
+
+            if (selectedSubscription != null && !selectedSubscription.equals("Всички")) {
+                matchesSubscription = member.type.get().equals(selectedSubscription);
+            }
+
+            return matchesSearch && matchesStatus && matchesSubscription;
+        });
     }
 
     public static class SubscriptionType {

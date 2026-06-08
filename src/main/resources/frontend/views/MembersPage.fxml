@@ -23,9 +23,20 @@
         <padding>
             <Insets top="10.0" right="15.0" bottom="10.0" left="15.0"/>
         </padding>
-        <TextField promptText="🔍 Търси по име, телефон или имейл..." HBox.hgrow="ALWAYS" styleClass="search-field"/>
-        <ComboBox promptText="Статус: Всички" styleClass="filter-combo"/>
-        <ComboBox promptText="Абонамент: Всички" styleClass="filter-combo"/>
+        <TextField fx:id="txtSearchMember"
+                   promptText="🔍 Търси по име, телефон или имейл..."
+                   HBox.hgrow="ALWAYS"
+                   styleClass="search-field"/>
+        <Label text="Статус" style="-fx-font-size: 11px; -fx-text-fill: #6B7280;"/>
+        <ComboBox fx:id="comboStatusFilter"
+                  promptText="Статус: Всички"
+                  styleClass="filter-combo"
+                  style="-fx-pref-width: 180px;"/>
+        <Label text="Абонамент" style="-fx-font-size: 11px; -fx-text-fill: #6B7280;"/>
+        <ComboBox fx:id="comboSubscriptionFilter"
+                  promptText="Абонамент: Всички"
+                  styleClass="filter-combo"
+                  style="-fx-pref-width: 180px;"/>
     </HBox>
 
     <TableView fx:id="membersTable" VBox.vgrow="ALWAYS" styleClass="custom-table, members-table">
