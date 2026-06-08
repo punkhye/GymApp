@@ -12,7 +12,7 @@
 
         <VBox alignment="CENTER" spacing="5.0" style="-fx-background-color: #1A1D20; -fx-background-radius: 5px 5px 0 0; -fx-padding: 30px;">
             <Label text="GymApp System" style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #FFFFFF;"/>
-            <Label text="Вход в административния панел" style="-fx-text-fill: #9CA3AF; -fx-font-size: 13px;"/>
+            <Label text="Вход системата" style="-fx-text-fill: #9CA3AF; -fx-font-size: 13px;"/>
         </VBox>
 
         <VBox spacing="15.0" style="-fx-padding: 30px;">
@@ -31,7 +31,7 @@
 
             <Region prefHeight="10.0"/>
 
-            <Button text="Вход в системата" onAction="#handleLogin" styleClass="primary-action-btn" style="-fx-max-width: Infinity; -fx-pref-height: 45px; -fx-font-size: 14px;"/>
+            <Button text="Вход в системата" onAction="#handleLogin" styleClass="primary-action-btn" style="-fx-max-width: Infinity; -fx-pref-height: 45px; -fx-font-size: 14px;" defaultButton="true"/>
         </VBox>
 
     </VBox>

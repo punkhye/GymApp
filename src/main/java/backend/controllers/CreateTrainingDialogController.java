@@ -59,29 +59,29 @@ public class CreateTrainingDialogController {
 
     @FXML
     private void onSave() {
-        if (
-                typeField.getText().isBlank()
-                        ||
-                        trainerField.getText().isBlank()
-                        ||
-                        hallField.getText().isBlank()
+        // 1. Проверяваме абсолютно всички текстови полета + DatePicker-а
+        if (typeField.getText().isBlank() ||
+                trainerField.getText().isBlank() ||
+                hallField.getText().isBlank() ||
+                timeField.getText().isBlank() ||
+                dateField.getValue() == null) {
 
-        ) {
-
-            showAlert("Моля попълни всички полета."
-            );
+            showAlert("Моля, попълнете абсолютно всички полета и изберете дата.");
             return;
         }
-        result =
-                new ScheduleController.TrainingRow(
-                        "NEW",
-                        typeField.getText(),
-                        trainerField.getText(),
-                        hallField.getText(),
-                        dateField.getValue().toString(),
-                        timeField.getText(),
-                        capacityField.getValue()
-                );
+
+        // 2. Вече е напълно безопасно да вземем стойността на датата
+        String dateStr = dateField.getValue().toString();
+
+        result = new ScheduleController.TrainingRow(
+                "NEW",
+                typeField.getText(),
+                trainerField.getText(),
+                hallField.getText(),
+                dateStr,
+                timeField.getText(),
+                capacityField.getValue()
+        );
         close();
     }
 

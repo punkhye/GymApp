@@ -4,8 +4,20 @@
     <mappings />
     <preferences />
   </component>
+  <component name="DBNavigator.Project.DataEditorManager">
+    <record-view-column-sorting-type value="BY_INDEX" />
+    <value-preview-text-wrapping value="true" />
+    <value-preview-pinned value="false" />
+  </component>
   <component name="DBNavigator.Project.DatabaseAssistantManager">
-    <assistants />
+    <assistants>
+      <assistant-state connection-id="2ed70522-4eaf-47f6-a665-63448a5a9aed" assistant-type="SELECT_AI" default-profile-name="" selected-chat-id="" availability="UNAVAILABLE" acknowledgement="NONE">
+        <tools />
+      </assistant-state>
+      <assistant-state connection-id="2ed70522-4eaf-47f6-a665-63448a5a9aed" assistant-type="PUBLIC" default-profile-name="" selected-chat-id="" availability="AVAILABLE" acknowledgement="NONE" selected="true">
+        <tools />
+      </assistant-state>
+    </assistants>
     <selection-state>
       <model-selection />
     </selection-state>
@@ -13,7 +25,7 @@
   <component name="DBNavigator.Project.DatabaseBrowserManager">
     <autoscroll-to-editor value="false" />
     <autoscroll-from-editor value="true" />
-    <show-object-properties value="true" />
+    <show-object-properties value="false" />
     <loaded-nodes />
   </component>
   <component name="DBNavigator.Project.DatabaseConsoleManager">
@@ -21,8 +33,25 @@
       <console name="Connection" type="STANDARD" schema="gym_app_database_efrh" session="Main" />
     </connection>
   </component>
+  <component name="DBNavigator.Project.DatabaseEditorStateManager">
+    <last-used-providers />
+  </component>
   <component name="DBNavigator.Project.DatabaseFileManager">
     <open-files />
+  </component>
+  <component name="DBNavigator.Project.DatabasePrerequisiteManager">
+    <prerequisites />
+  </component>
+  <component name="DBNavigator.Project.DatabaseSessionManager">
+    <connection id="2ed70522-4eaf-47f6-a665-63448a5a9aed" />
+  </component>
+  <component name="DBNavigator.Project.DatasetFilterManager">
+    <filter-actions connection-id="2ed70522-4eaf-47f6-a665-63448a5a9aed" dataset="public.subscription_types" active-filter-id="" />
+    <filter-actions connection-id="2ed70522-4eaf-47f6-a665-63448a5a9aed" dataset="public.workout_registrations" active-filter-id="" />
+    <filter-actions connection-id="2ed70522-4eaf-47f6-a665-63448a5a9aed" dataset="public.workout_types" active-filter-id="" />
+  </component>
+  <component name="DBNavigator.Project.ExecutionManager">
+    <retain-sticky-names value="false" />
   </component>
   <component name="DBNavigator.Project.ObjectQuickFilterManager">
     <last-used-operator value="EQUAL" />
@@ -36,21 +65,14 @@
           <description value="" />
           <database-type value="POSTGRES" />
           <config-type value="BASIC" />
-          <database-version value="9999.0" />
+          <database-version value="18.4" />
           <driver-source value="BUNDLED" />
           <driver-library value="" />
           <driver value="" />
-          <url-type value="DATABASE" />
-          <host value="dpg-d8fdiki8qa3s738t8570-a.frankfurt-postgres.render.com" />
-          <port value="5432" />
-          <database value="gym_app_database_efrh" />
-          <tns-folder value="" />
-          <tns-profile value="" />
-          <server-type value="" />
-          <protocol value="" />
-          <url-parameters />
+          <url-type value="CUSTOM" />
+          <url value="jdbc:postgresql://dpg-d8fdiki8qa3s738t8570-a.frankfurt-postgres.render.com:5432/gym_app_database_efrh?sslmode=require" />
           <type value="USER_PASSWORD" />
-          <user value="database_admin" />
+          <user value="db_admin" />
           <token-type value="" />
           <token-config-file value="" />
           <token-profile value="" />
@@ -60,7 +82,7 @@
           <azure-token-tenant-id value="" />
           <azure-token-client-id value="" />
           <azure-token-client-certificate-file value="" />
-          <session-user value="" />
+          <session-user value="gym_app_database_efrh_user" />
         </database>
         <properties>
           <auto-commit value="false" />
@@ -587,5 +609,9 @@
         </visibility-settings>
       </environment>
     </general-settings>
+  </component>
+  <component name="DBNavigator.Project.StatementExecutionManager">
+    <execution-variables />
+    <execution-variable-types />
   </component>
 </project>

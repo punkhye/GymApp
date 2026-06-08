@@ -13,6 +13,7 @@ public class DBConnection {
         if (connection != null) return;
 
         try {
+
             Class.forName("org.postgresql.Driver");
 
             Properties props = new Properties();

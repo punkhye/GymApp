@@ -27,31 +27,28 @@
             <Insets top="12.0" right="15.0" bottom="12.0" left="15.0"/>
         </padding>
 
-        <!-- Седмична навигация вляво -->
         <HBox alignment="CENTER_LEFT" spacing="10.0">
-            <Button text="&lt;" styleClass="pagination-btn"/>
-            <Button text="Днес" styleClass="pagination-btn" style="-fx-pref-width: 60px;"/>
-            <Button text="&gt;" styleClass="pagination-btn"/>
-            <Label text="01 Юни - 07 Юни, 2026" style="-fx-font-size: 15px; -fx-font-weight: bold; -fx-text-fill: #1A1D20; -fx-padding: 0 0 0 10;"/>
+            <Button text="&lt;" styleClass="pagination-btn" onAction="#handlePreviousWeek"/>
+            <Button text="Днес" styleClass="pagination-btn" style="-fx-pref-width: 60px;" onAction="#handleCurrentWeek"/>
+            <Button text="&gt;" styleClass="pagination-btn" onAction="#handleNextWeek"/>
+            <Label fx:id="lblWeekRange" text="Зареждане..." style="-fx-font-size: 15px; -fx-font-weight: bold; -fx-text-fill: #1A1D20; -fx-padding: 0 0 0 10;"/>
         </HBox>
 
         <Region HBox.hgrow="ALWAYS"/>
 
-        <!-- Превключватели за изглед (Segmented Buttons) -->
         <HBox styleClass="segmented-group">
-            <Button text="Ден" styleClass="segmented-btn"/>
-            <Button text="Седмица" styleClass="segmented-btn, segmented-btn-active"/>
-            <Button text="Месец" styleClass="segmented-btn"/>
+            <Button fx:id="btnViewDay" text="Ден" styleClass="segmented-btn" onAction="#handleViewDay"/>
+            <Button fx:id="btnViewWeek" text="Седмица" styleClass="segmented-btn, segmented-btn-active" onAction="#handleViewWeek"/>
+            <Button fx:id="btnViewMonth" text="Месец" styleClass="segmented-btn" onAction="#handleViewMonth"/>
         </HBox>
 
-        <!-- Падащи филтри -->
         <ComboBox promptText="Филтър треньор" styleClass="filter-combo" style="-fx-pref-width: 150px;"/>
         <ComboBox promptText="Филтър зала" styleClass="filter-combo" style="-fx-pref-width: 130px;"/>
     </HBox>
 
     <!-- WEEKLY TIMETABLE GRID (Календар) -->
     <ScrollPane fitToWidth="true" styleClass="calendar-scroll" VBox.vgrow="ALWAYS">
-        <GridPane fx:id="calendarGrid" styleClass="calendar-grid">
+        <GridPane fx:id="calendarGrid" styleClass="calendar-grid" VBox.vgrow="ALWAYS">
             <columnConstraints>
                 <ColumnConstraints prefWidth="80.0" minWidth="80.0" halignment="CENTER" /> <!-- Колона за Часовете -->
                 <ColumnConstraints hgrow="ALWAYS" minWidth="130.0" /> <!-- Понеделник -->
