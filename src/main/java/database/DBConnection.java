@@ -17,7 +17,11 @@ public class DBConnection {
             Class.forName("org.postgresql.Driver");
 
             Properties props = new Properties();
-            props.load(new FileInputStream("src/main/java/database/db.properties"));
+            props.load(
+                    DBConnection.class
+                            .getClassLoader()
+                            .getResourceAsStream("db.properties")
+            );
 
             connection = DriverManager.getConnection(
                     props.getProperty("db.url"),
@@ -37,21 +41,17 @@ public class DBConnection {
             if (connection == null || connection.isClosed()) {
                 init();
             }
-        } catch (Exception e) {
+        }
+
+        catch (Exception e) {
             e.printStackTrace();
         }
+
         return connection;
+
     }
 
     public static void close() {
-        try {
-            if (connection != null && !connection.isClosed()) {
-                connection.close();
-                connection = null;
-                System.out.println("DB closed!");
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+
     }
 }

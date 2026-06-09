@@ -20,14 +20,23 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Scene;
+import javafx.stage.Modality;
+import javafx.stage.Stage;
 
 public class ScheduleController {
 
-    @FXML private GridPane calendarGrid;
-    @FXML private Label lblWeekRange;
-    @FXML private Button btnViewDay;
-    @FXML private Button btnViewWeek;
-    @FXML private Button btnViewMonth;
+    @FXML
+    private GridPane calendarGrid;
+    @FXML
+    private Label lblWeekRange;
+    @FXML
+    private Button btnViewDay;
+    @FXML
+    private Button btnViewWeek;
+    @FXML
+    private Button btnViewMonth;
 
     private HomeController mainController;
     private LocalDate currentAnchorDate;
@@ -36,13 +45,32 @@ public class ScheduleController {
     public static class TrainingRow {
         private String id, type, trainer, hall, date, time;
         private int capacity;
+
         public TrainingRow(String id, String type, String trainer, String hall, String date, String time, int capacity) {
-            this.id = id; this.type = type; this.trainer = trainer; this.hall = hall; this.date = date; this.time = time; this.capacity = capacity;
+            this.id = id;
+            this.type = type;
+            this.trainer = trainer;
+            this.hall = hall;
+            this.date = date;
+            this.time = time;
+            this.capacity = capacity;
         }
-        public String getType() { return type; }
-        public String getTrainer() { return trainer; }
-        public String getHall() { return hall; }
-        public Integer getCapacity() { return capacity; }
+
+        public String getType() {
+            return type;
+        }
+
+        public String getTrainer() {
+            return trainer;
+        }
+
+        public String getHall() {
+            return hall;
+        }
+
+        public Integer getCapacity() {
+            return capacity;
+        }
     }
 
     public void setMainController(HomeController mainController) {
@@ -111,7 +139,9 @@ public class ScheduleController {
                     }
                 }
             }
-        } catch (Exception e) { e.printStackTrace(); }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     private void buildWeekStructure() {
@@ -155,7 +185,9 @@ public class ScheduleController {
                     }
                 }
             }
-        } catch (Exception e) { e.printStackTrace(); }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     private void buildMonthStructure() {
@@ -201,7 +233,9 @@ public class ScheduleController {
                     }
                 }
             }
-        } catch (Exception e) { e.printStackTrace(); }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
         for (int day = 1; day <= yearMonth.lengthOfMonth(); day++) {
             int calcIdx = leadDays + day - 1;
@@ -257,9 +291,12 @@ public class ScheduleController {
         VBox card = new VBox(4);
         card.setPadding(new Insets(8));
         card.setStyle("-fx-background-color: #F8FAFC; -fx-background-radius: 6; -fx-border-color: #E2E8F0; -fx-border-width: 1;");
-        Label lblTitle = new Label(title); lblTitle.setStyle("-fx-font-weight: bold; -fx-text-fill: #0F172A; -fx-font-size: 12px;");
-        Label lblCoach = new Label("👤 " + coach); lblCoach.setStyle("-fx-text-fill: #475569; -fx-font-size: 11px;");
-        Label lblRoom = new Label("📍 Зала " + room); lblRoom.setStyle("-fx-text-fill: #64748B; -fx-font-size: 11px;");
+        Label lblTitle = new Label(title);
+        lblTitle.setStyle("-fx-font-weight: bold; -fx-text-fill: #0F172A; -fx-font-size: 12px;");
+        Label lblCoach = new Label("👤 " + coach);
+        lblCoach.setStyle("-fx-text-fill: #475569; -fx-font-size: 11px;");
+        Label lblRoom = new Label("📍 Зала " + room);
+        lblRoom.setStyle("-fx-text-fill: #64748B; -fx-font-size: 11px;");
         card.getChildren().addAll(lblTitle, lblCoach, lblRoom);
         return card;
     }
@@ -327,5 +364,27 @@ public class ScheduleController {
         activeBtn.getStyleClass().add("segmented-btn-active");
     }
 
-    @FXML private void onCreateTraining() {}
+    @FXML
+    private void onCreateTraining() {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/frontend/views/CreateTrainingDialog.fxml"));
+            Stage stage = new Stage();
+            stage.setScene(new Scene(loader.load()));
+            stage.initModality(Modality.APPLICATION_MODAL);
+            stage.showAndWait();
+            CreateTrainingDialogController controller = loader.getController();
+            if (
+                    controller.getResult()
+                            != null
+
+            ) {
+
+
+                refreshCalendar();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+    }
 }
