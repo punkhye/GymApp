@@ -4,6 +4,7 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
+
 <VBox spacing="12"
       xmlns="http://javafx.com/javafx/22"
       xmlns:fx="http://javafx.com/fxml/1"
@@ -19,13 +20,15 @@
 
     <Label text="Добавяне на тренировка"/>
 
-    <TextField
+    <ComboBox
             fx:id="typeField"
-            promptText="Вид тренировка"/>
+            editable="true"
+            promptText="Избери или въведи тренировка"/>
 
-    <TextField
+    <ComboBox
             fx:id="trainerField"
-            promptText="Треньор"/>
+            editable="true"
+            promptText="Избери или въведи треньор"/>
 
     <TextField
             fx:id="hallField"

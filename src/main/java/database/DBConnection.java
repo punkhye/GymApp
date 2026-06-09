@@ -1,71 +1,49 @@
 package database;
 
+import java.io.FileInputStream;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.util.Properties;
 
 public class DBConnection {
-
-    private static final String URL =
-            "jdbc:postgresql://dpg-d8fdiki8qa3s738t8570-a.frankfurt-postgres.render.com/gym_app_database_efrh";
-
-    private static final String USER =
-            "db_admin";
-
-    private static final String PASSWORD =
-            "wU0taaRpBbxitxUh3VW5zFHjLRHbZiRv";
-
+    private static Properties props;
     public static void init() {
-
         try {
-            Class.forName(
-                    "org.postgresql.Driver"
-            );
-            System.out.println(
-                    "DB connected!"
-            );
-
+            Class.forName("org.postgresql.Driver");
+            props =new Properties();
+            props.load(new FileInputStream("src/main/java/database/db.properties"));
+            System.out.println("DB connected!");
         }
 
         catch (Exception e) {
-
             e.printStackTrace();
-
         }
 
     }
 
-
     public static Connection getConnection() {
-
         try {
+            if (props == null) {
+                init();
+            }
 
-            Class.forName(
-                    "org.postgresql.Driver"
+            return DriverManager.getConnection(
+                    props.getProperty("db.url"),
+                    props.getProperty("db.user"),
+                    props.getProperty("db.password")
             );
-
-            Connection conn =
-
-                    DriverManager.getConnection(
-
-                            URL,
-
-                            USER,
-
-                            PASSWORD
-
-                    );
-
-            return conn;
 
         }
 
         catch (Exception e) {
-
             e.printStackTrace();
-
             return null;
-
         }
+
+    }
+
+    public static void close() {
+        // вече не прави нищо
 
     }
 
