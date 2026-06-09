@@ -79,14 +79,21 @@ public class MembersController {
         });
 
         colActions.setCellFactory(param -> new TableCell<>() {
-            private final Button btnEdit = new Button("✏");
-            private final Button btnToggle = new Button("⏻");
-            private final HBox container = new HBox(10, btnEdit, btnToggle);
+            private final Button btnDelete = new Button("🗑");
+            private final HBox container = new HBox(10, btnDelete);
 
             {
-                btnEdit.setStyle("-fx-cursor: hand; -fx-background-color: transparent; -fx-text-fill: #4B5563; -fx-font-size: 14px;");
-                btnToggle.setStyle("-fx-cursor: hand; -fx-background-color: transparent; -fx-text-fill: #DC2626; -fx-font-size: 14px;");
+
+                btnDelete.setStyle("-fx-cursor: hand; -fx-background-color: transparent; -fx-text-fill: #DC2626; -fx-font-size: 14px;");
                 container.setStyle("-fx-alignment: CENTER;");
+
+                btnDelete.setOnAction(event -> {
+                    MemberRow member = getTableView().getItems().get(getIndex());
+
+                    if (member != null) {
+                        handleDeleteMember(member);
+                    }
+                });
             }
 
             @Override
@@ -582,6 +589,75 @@ public class MembersController {
 
             return matchesSearch && matchesStatus && matchesSubscription;
         });
+    }
+
+    private void handleDeleteMember(MemberRow member) {
+        Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
+        confirm.setTitle("Потвърждение");
+        confirm.setHeaderText("Изтриване на член");
+        confirm.setContentText("Сигурни ли сте, че искате да изтриете: " + member.name.get() + "?");
+
+        confirm.showAndWait().ifPresent(response -> {
+            if (response == ButtonType.OK) {
+                boolean deleted = deleteMemberFromDB(member.id.get());
+
+                if (deleted) {
+                    loadMembersFromDB();
+                    applyMemberFilters();
+
+                    showAlert(Alert.AlertType.INFORMATION, "Изтрито", "Членът е изтрит успешно.");
+                }
+            }
+        });
+    }
+
+    private boolean deleteMemberFromDB(String memberId) {
+        String deleteSubscriptionsSql = "DELETE FROM member_subscriptions WHERE member_id = ?";
+        String deleteMemberSql = "DELETE FROM members WHERE id = ?";
+
+        var conn = DBConnection.getConnection();
+
+        try {
+            conn.setAutoCommit(false);
+
+            int id = Integer.parseInt(memberId);
+
+            try (var stmt = conn.prepareStatement(deleteSubscriptionsSql)) {
+                stmt.setInt(1, id);
+                stmt.executeUpdate();
+            }
+
+            try (var stmt = conn.prepareStatement(deleteMemberSql)) {
+                stmt.setInt(1, id);
+                int affectedRows = stmt.executeUpdate();
+
+                if (affectedRows == 0) {
+                    conn.rollback();
+                    showAlert(Alert.AlertType.WARNING, "Не е намерен член", "Членът не беше намерен в базата.");
+                    return false;
+                }
+            }
+
+            conn.commit();
+            return true;
+
+        } catch (Exception e) {
+            try {
+                conn.rollback();
+            } catch (Exception rollbackError) {
+                rollbackError.printStackTrace();
+            }
+
+            e.printStackTrace();
+            showAlert(Alert.AlertType.ERROR, "Грешка с базата", "Членът не беше изтрит от базата.");
+            return false;
+
+        } finally {
+            try {
+                conn.setAutoCommit(true);
+            } catch (Exception ignored) {
+            }
+        }
     }
 
     public static class SubscriptionType {
