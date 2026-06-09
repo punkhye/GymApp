@@ -176,33 +176,25 @@ public class ScheduleController {
     }
 
     private void loadSchedules() {
-
         try {
-
-            Connection conn =
-                    DBConnection.getConnection();
-
-            Statement st =
-                    conn.createStatement();
-
-            ResultSet rs =
-                    st.executeQuery(
-
+            Connection conn = DBConnection.getConnection();
+            Statement st = conn.createStatement();
+            ResultSet rs = st.executeQuery(
                             """
-                            SELECT
-                                wt.name,
-                                c.first_name,
-                                s.hall_name,
-                                s.start_time
+                 SELECT
+                 wt.name,
+                 c.first_name,
+                 s.hall_name,
+                 s.start_time
     
-                            FROM schedules s
+                 FROM schedules s
     
-                            JOIN workout_types wt
-                            ON wt.id = s.workout_type_id
+                 JOIN workout_types wt
+                 ON wt.id = s.workout_type_id
     
-                            JOIN coaches c
-                            ON c.id = s.coach_id
-                            """
+                 JOIN coaches c
+                 ON c.id = s.coach_id
+                 """
 
                     );
 
@@ -267,11 +259,8 @@ public class ScheduleController {
                 }
 
                 createClassCard(
-
                         workoutName,
-
                         trainerName,
-
                         hallName,
 
                         hour,
