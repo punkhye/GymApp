@@ -55,6 +55,12 @@
                 text="Запази"
                 onAction="#onSave"/>
 
+        <Button
+                fx:id="deleteButton"
+                text="Изтрий"
+                onAction="#onDelete"
+        />
+
     </HBox>
 
 </VBox>
