@@ -19,13 +19,17 @@
 
     <Label text="Добавяне на тренировка"/>
 
-    <TextField
+    <ComboBox
             fx:id="typeField"
-            promptText="Вид тренировка"/>
+            editable="true"
+            promptText="Дисциплина"
+    />
 
-    <TextField
+    <ComboBox
             fx:id="trainerField"
-            promptText="Треньор"/>
+            editable="true"
+            promptText="Треньор"
+    />
 
     <TextField
             fx:id="hallField"

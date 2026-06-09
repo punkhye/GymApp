@@ -3,13 +3,17 @@ package backend.controllers;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.stage.Stage;
+import database.DBConnection;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 
 import java.time.LocalDate;
 
 public class CreateTrainingDialogController {
 
-    @FXML private TextField typeField;
-    @FXML private TextField trainerField;
+    @FXML private ComboBox<String> typeField;
+    @FXML private ComboBox<String> trainerField;
     @FXML private TextField hallField;
     @FXML private DatePicker dateField;
     @FXML private TextField timeField;
@@ -24,7 +28,79 @@ public class CreateTrainingDialogController {
                         100,
                         20
                 )
+
         );
+
+        loadTypes();
+
+        loadTrainers();
+
+    }
+
+    private void loadTypes() {
+        try {
+            Connection conn = DBConnection.getConnection();
+            PreparedStatement stmt = conn.prepareStatement(
+                            """
+                            SELECT name
+                            FROM workout_types
+                            ORDER BY name
+                            """
+                    );
+            ResultSet rs = stmt.executeQuery();
+
+            typeField
+                    .getItems()
+                    .clear();
+            while (
+                    rs.next()
+            ) {
+                typeField.getItems().add(rs.getString("name"));
+            }
+
+        }
+
+        catch (Exception e) {
+
+            e.printStackTrace();
+
+        }
+
+    }
+
+    private void loadTrainers() {
+        try {
+            Connection conn = DBConnection.getConnection();
+            PreparedStatement stmt = conn.prepareStatement(
+                    """
+                    SELECT
+                    first_name,
+                    last_name
+                    FROM coaches
+                    ORDER BY first_name
+                    """
+                    );
+
+            ResultSet rs = stmt.executeQuery();
+            trainerField
+                    .getItems()
+                    .clear();
+
+            while (rs.next()) {
+                trainerField
+                        .getItems()
+                        .add(
+                                rs.getString("first_name") + " " + rs.getString("last_name"));
+
+            }
+
+        }
+
+        catch (Exception e) {
+            e.printStackTrace();
+
+        }
+
     }
 
     /**
@@ -59,30 +135,89 @@ public class CreateTrainingDialogController {
 
     @FXML
     private void onSave() {
-        // 1. Проверяваме абсолютно всички текстови полета + DatePicker-а
-        if (typeField.getText().isBlank() ||
-                trainerField.getText().isBlank() ||
-                hallField.getText().isBlank() ||
-                timeField.getText().isBlank() ||
-                dateField.getValue() == null) {
+        if (typeField.getEditor().getText().isBlank() ||
+            trainerField.getEditor().getText().isBlank() ||
+            hallField.getText().isBlank() ||
+            timeField.getText().isBlank() ||
+            dateField.getValue() == null
 
-            showAlert("Моля, попълнете абсолютно всички полета и изберете дата.");
+        ) {
+
+            showAlert("Попълни всички полета.");
+
             return;
+
         }
 
-        // 2. Вече е напълно безопасно да вземем стойността на датата
-        String dateStr = dateField.getValue().toString();
+        try {
+            Connection conn = DBConnection.getConnection();
+
+            PreparedStatement stmt = conn.prepareStatement(
+                    """
+                    INSERT INTO schedules
+                    (
+                    workout_type_id,
+                    coach_id,
+                    hall_name,
+                    start_time
+                    )
+                    VALUES
+                    (
+                    (
+                    SELECT id
+                    FROM workout_types
+                    WHERE name = ?
+                    LIMIT 1
+                    ),
+                    
+                    (
+                    SELECT id
+                    FROM coaches
+                    WHERE (first_name || ' ' || last_name) = ?
+                    LIMIT 1
+                    ),
+                    
+                    ?,
+                    
+                    ?
+                    )
+                    
+                    """
+
+            );
+
+            stmt.setString(1, typeField.getEditor().getText());
+
+            stmt.setString(2, trainerField.getEditor().getText());
+
+            stmt.setString(3, hallField.getText());
+
+            stmt.setTimestamp(4, java.sql.Timestamp.valueOf(dateField.getValue() + " " + timeField.getText() + ":00"));
+
+            stmt.executeUpdate();
+
+            System.out.println("TRAINING SAVED"
+            );
+
+        }
+
+        catch (Exception e) {
+            e.printStackTrace();
+        }
 
         result = new ScheduleController.TrainingRow(
                 "NEW",
-                typeField.getText(),
-                trainerField.getText(),
+                typeField.getEditor().getText(),
+                trainerField.getEditor().getText(),
                 hallField.getText(),
-                dateStr,
+                dateField.getValue().toString(),
                 timeField.getText(),
                 capacityField.getValue()
+
         );
+
         close();
+
     }
 
     @FXML
