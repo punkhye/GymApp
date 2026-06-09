@@ -18,7 +18,11 @@ public class CreateTrainingDialogController {
     @FXML private DatePicker dateField;
     @FXML private TextField timeField;
     @FXML private Spinner<Integer> capacityField;
+    @FXML private Button deleteButton;
+
     private ScheduleController.TrainingRow result;
+    private Integer editId = null;
+    private boolean editMode = false;
     @FXML
     public void initialize() {
         capacityField.setValueFactory(
@@ -31,8 +35,8 @@ public class CreateTrainingDialogController {
 
         );
 
+        deleteButton.setVisible(false);
         loadTypes();
-
         loadTrainers();
 
     }
@@ -149,6 +153,21 @@ public class CreateTrainingDialogController {
 
         }
 
+        if (editMode) {
+            result = new ScheduleController.TrainingRow(String.valueOf(editId),
+                    typeField.getEditor().getText(),
+                    trainerField.getEditor().getText(),
+                    hallField.getText(),
+                    dateField.getValue().toString(),
+                    timeField.getText(),
+                    capacityField.getValue()
+            );
+            close();
+
+            return;
+
+        }
+
         try {
             Connection conn = DBConnection.getConnection();
 
@@ -221,6 +240,33 @@ public class CreateTrainingDialogController {
     }
 
     @FXML
+    private void onDelete() {
+        if (editId == null) {
+            return;
+        }
+        try {Connection conn = DBConnection.getConnection();
+            PreparedStatement stmt = conn.prepareStatement(
+            """
+            DELETE
+            FROM schedules
+            WHERE id=?
+            """
+                    );
+
+            stmt.setInt(1, editId);
+            stmt.executeUpdate();
+            System.out.println("TRAINING DELETED");
+            result = null;
+            close();
+        }
+
+        catch (Exception e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    @FXML
     private void onCancel() {
         result = null;
         close();
@@ -245,5 +291,36 @@ public class CreateTrainingDialogController {
         alert.setHeaderText(null);
         alert.setContentText(msg);
         alert.showAndWait();
+    }
+
+    public void loadTraining(
+            String type,
+            String trainer,
+            String hall,
+            String date,
+            String time,
+            Integer capacity
+    ) {
+
+        typeField.setValue(type);
+        trainerField.setValue(trainer);
+        hallField.setText(hall);
+        dateField.setValue(LocalDate.parse(date));
+        timeField.setText(time);
+        capacityField.getValueFactory().setValue(capacity);
+    }
+
+    public void setEditMode(
+            Integer id
+    ) {
+
+        editMode = true;
+
+        editId = id;
+
+        deleteButton.setVisible(
+                true
+        );
+
     }
 }

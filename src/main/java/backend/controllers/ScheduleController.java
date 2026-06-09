@@ -19,11 +19,13 @@ import java.time.temporal.TemporalAdjusters;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import javafx.scene.control.TextInputDialog;
 import java.util.Map;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import javafx.scene.control.TextInputDialog;
 
 public class ScheduleController {
 
@@ -46,6 +48,7 @@ public class ScheduleController {
         private String id, type, trainer, hall, date, time;
         private int capacity;
 
+
         public TrainingRow(String id, String type, String trainer, String hall, String date, String time, int capacity) {
             this.id = id;
             this.type = type;
@@ -54,6 +57,18 @@ public class ScheduleController {
             this.date = date;
             this.time = time;
             this.capacity = capacity;
+        }
+
+        public String getId() {
+            return id;
+        }
+
+        public String getDate() {
+            return date;
+        }
+
+        public String getTime() {
+            return time;
         }
 
         public String getType() {
@@ -84,26 +99,36 @@ public class ScheduleController {
     }
 
     private void refreshCalendar() {
-        calendarGrid.getChildren().clear();
-        updateLabelText();
+        calendarGrid
+                .getChildren()
+                .clear();
 
-        switch (currentViewMode) {
+        updateLabelText();
+        switch (currentViewMode
+        ) {
             case "DAY":
                 buildDayStructure();
                 loadDayData();
                 break;
+
             case "WEEK":
                 buildWeekStructure();
                 loadWeekData();
                 break;
+
             case "MONTH":
                 buildMonthStructure();
                 loadMonthData();
                 break;
+
         }
+
     }
 
     private void buildDayStructure() {
+        calendarGrid.getColumnConstraints().clear();
+        calendarGrid.getRowConstraints().clear();
+
         Label hTime = new Label("Час");
         hTime.getStyleClass().add("calendar-header-cell");
         hTime.setStyle("-fx-font-weight: bold; -fx-padding: 10;");
@@ -134,7 +159,8 @@ public class ScheduleController {
                         LocalDateTime startDateTime = rs.getTimestamp("start_time").toLocalDateTime();
                         int rowIdx = startDateTime.getHour() - 8 + 1;
                         if (rowIdx >= 1 && rowIdx <= 14) {
-                            calendarGrid.add(extractCard(rs), 1, rowIdx);
+                            javafx.scene.layout.HBox slot = getOrCreateDaySlot(rowIdx);
+                            slot.getChildren().add(extractCard(rs));
                         }
                     }
                 }
@@ -145,25 +171,66 @@ public class ScheduleController {
     }
 
     private void buildWeekStructure() {
-        LocalDate startOfWeek = currentAnchorDate.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
-        String[] days = {"Час", "Понеделник", "Вторник", "Сряда", "Четвъртък", "Петък", "Събота", "Неделя"};
+        calendarGrid.getChildren().clear();
+        calendarGrid.getColumnConstraints().clear();
+        calendarGrid.getRowConstraints().clear();
 
+        for (int i = 0; i < 8; i++) {
+            javafx.scene.layout.ColumnConstraints col =
+                    new javafx.scene.layout.ColumnConstraints();
+            if (i == 0) {
+                col.setPercentWidth(8);
+            }
+
+            else {
+                col.setPercentWidth(13.14);
+            }
+
+            calendarGrid.getColumnConstraints().add(col);
+
+        }
+
+        LocalDate startOfWeek = currentAnchorDate.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
+
+        String[] days = {"Час", "Понеделник", "Вторник", "Сряда", "Четвъртък", "Петък", "Събота", "Неделя"};
         for (int i = 0; i < days.length; i++) {
-            Label dayLabel = (i == 0) ? new Label(days[i]) : new Label(days[i] + "\n(" + startOfWeek.plusDays(i - 1).format(DateTimeFormatter.ofPattern("dd.MM")) + ")");
-            dayLabel.getStyleClass().add("calendar-header-cell");
-            dayLabel.setStyle("-fx-font-weight: bold; -fx-padding: 12; -fx-alignment: center; -fx-max-width: 5000;");
+            Label dayLabel = (i == 0) ? new Label(days[i]) : new Label(days[i] + "\n(" + startOfWeek.plusDays(i - 1)
+                                    .format(DateTimeFormatter.ofPattern("dd.MM")) + ")");
+
+            dayLabel.setMaxWidth(Double.MAX_VALUE);
+            dayLabel.setMinHeight(60);
+            dayLabel.setStyle(
+                    "-fx-font-weight:bold;"
+                            + "-fx-padding:16;"
+                            + "-fx-alignment:center;"
+                            + "-fx-border-color:#E2E8F0;"
+                            + "-fx-background-color:#F8FAFC;"
+            );
+
             calendarGrid.add(dayLabel, i, 0);
         }
 
-        int rowIdx = 1;
+        int row = 1;
         for (int hour = 8; hour <= 21; hour++) {
-            Label timeLabel = new Label(String.format("%02d:00", hour));
-            timeLabel.getStyleClass().add("calendar-time-cell");
-            timeLabel.setStyle("-fx-font-weight: bold; -fx-padding: 15;");
-            calendarGrid.add(timeLabel, 0, rowIdx++);
-        }
-    }
+            Label time = new Label(String.format("%02d:00", hour));
+            time.setMinHeight(90);
 
+            time.setMaxWidth(Double.MAX_VALUE);
+
+            time.setStyle(
+                    "-fx-font-weight:bold;"
+                            + "-fx-alignment:center;"
+                            + "-fx-border-color:#E2E8F0;"
+                            + "-fx-padding:14;"
+            );
+
+            calendarGrid.add(time, 0, row++);
+
+        }
+        calendarGrid.setHgap(8);
+        calendarGrid.setVgap(8);
+
+    }
     private void loadWeekData() {
         LocalDate startOfWeek = currentAnchorDate.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
         LocalDate endOfWeek = startOfWeek.plusDays(6);
@@ -180,7 +247,14 @@ public class ScheduleController {
                         int columnIdx = startDateTime.getDayOfWeek().getValue();
                         int rowIdx = startDateTime.getHour() - 8 + 1;
                         if (rowIdx >= 1 && rowIdx <= 14) {
-                            calendarGrid.add(extractCard(rs), columnIdx, rowIdx);
+                            VBox slot = getOrCreateSlot(
+                                    columnIdx,
+                                    rowIdx
+                            );
+
+                            slot.getChildren().add(
+                                    extractCard(rs)
+                            );
                         }
                     }
                 }
@@ -188,9 +262,65 @@ public class ScheduleController {
         } catch (Exception e) {
             e.printStackTrace();
         }
+
+    }
+    private VBox getOrCreateSlot(
+            int col,
+            int row
+    ) {
+
+        for (javafx.scene.Node node : calendarGrid.getChildren()
+        ) {
+            Integer c = GridPane.getColumnIndex(node);
+            Integer r = GridPane.getRowIndex(node);
+            if (c != null && r != null && c == col && r == row && node instanceof VBox
+            ) {
+                return (VBox) node;
+            }
+        }
+
+        VBox box = new VBox(6
+                );
+
+        box.setPadding(new Insets(4)
+        );
+        calendarGrid.add(box, col, row);
+
+        return box;
+
+    }
+
+    private javafx.scene.layout.HBox getOrCreateDaySlot(
+            int row
+    ) {
+        for (
+                javafx.scene.Node node : calendarGrid.getChildren()
+        ) {
+            Integer r = GridPane.getRowIndex(node);
+            Integer c = GridPane.getColumnIndex(node);
+            if (r != null && c != null && r == row && c == 1 && node instanceof javafx.scene.layout.HBox
+            ) {
+                return (javafx.scene.layout.HBox) node;
+            }
+
+        }
+
+        javafx.scene.layout.HBox box = new javafx.scene.layout.HBox(10);
+        box.setPadding(new Insets(6)
+        );
+        box.setMaxWidth(Double.MAX_VALUE
+        );
+        calendarGrid.add(box, 1, row
+        );
+
+        return box;
+
     }
 
     private void buildMonthStructure() {
+        calendarGrid.getChildren().clear();
+        calendarGrid.getColumnConstraints().clear();
+        calendarGrid.getRowConstraints().clear();
         calendarGrid.getColumnConstraints().clear();
 
         for (int i = 0; i < 7; i++) {
@@ -283,8 +413,29 @@ public class ScheduleController {
                 "JOIN coaches c ON s.coach_id = c.id";
     }
 
-    private VBox extractCard(ResultSet rs) throws Exception {
-        return createTrainingCard(rs.getString("workout_name"), rs.getString("coach_name"), rs.getString("hall_name"));
+    private VBox extractCard(ResultSet rs)
+            throws Exception {VBox card = createTrainingCard(
+                rs.getString("workout_name"),
+                rs.getString("coach_name"),
+                rs.getString("hall_name")
+                );
+
+        Integer scheduleId = rs.getInt("id");
+        card.setOnMouseClicked(
+        e -> {
+                    System.out.println(
+                            "CLICK " + scheduleId
+                    );
+                    openEditDialog(
+                            scheduleId
+                    );
+
+                }
+
+        );
+
+        return card;
+
     }
 
     private VBox createTrainingCard(String title, String coach, String room) {
@@ -298,6 +449,8 @@ public class ScheduleController {
         Label lblRoom = new Label("📍 Зала " + room);
         lblRoom.setStyle("-fx-text-fill: #64748B; -fx-font-size: 11px;");
         card.getChildren().addAll(lblTitle, lblCoach, lblRoom);
+        card.setPrefWidth(220);
+        card.setMaxWidth(220);
         return card;
     }
 
@@ -383,6 +536,109 @@ public class ScheduleController {
                 refreshCalendar();
             }
         } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    private void openEditDialog(Integer id) {
+        try {
+            Connection conn = DBConnection.getConnection();
+            PreparedStatement selectStmt = conn.prepareStatement(
+               """
+               SELECT
+               wt.name,
+               c.first_name,
+               c.last_name,
+               s.hall_name,
+               s.start_time
+               FROM schedules s
+               JOIN workout_types wt
+               ON s.workout_type_id = wt.id
+               JOIN coaches c
+               ON s.coach_id = c.id  
+               WHERE s.id = ?
+               """
+
+                    );
+            selectStmt.setInt(
+                    1,
+                    id
+            );
+
+            ResultSet rs = selectStmt.executeQuery();
+            if (
+                    !rs.next()
+            ) {
+                return;
+            }
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/frontend/views/CreateTrainingDialog.fxml"));
+            Stage stage = new Stage();
+            stage.setScene(new Scene(loader.load()));
+            CreateTrainingDialogController controller = loader.getController();
+            controller.setEditMode(id);
+            controller.loadTraining(rs.getString("name"),
+                    rs.getString("first_name") + " " + rs.getString("last_name"),
+                    rs.getString("hall_name"),
+                    rs.getTimestamp("start_time")
+                            .toLocalDateTime()
+                            .toLocalDate()
+                            .toString(),
+                    rs.getTimestamp("start_time")
+                            .toLocalDateTime()
+                            .toLocalTime()
+                            .toString()
+                            .substring(0, 5),
+                    20
+            );
+            stage.showAndWait();
+            refreshCalendar();
+
+            if (
+                    controller.getResult() == null
+            ) {
+                return;
+            }
+            TrainingRow updated = controller.getResult();
+            PreparedStatement stmt = conn.prepareStatement(
+                    """
+                    UPDATE schedules
+                    SET
+                    workout_type_id=
+                    (
+                    SELECT id
+                    FROM workout_types
+                    WHERE name=?
+                    LIMIT 1
+                    ),
+                    coach_id=
+                    (
+                    SELECT id
+                    FROM coaches
+                    WHERE TRIM(first_name || ' ' || last_name)=TRIM(?)
+                    LIMIT 1
+                    ),
+                    hall_name=?,
+                    start_time=?
+                    WHERE id=?
+                    
+                    """
+
+            );
+
+            stmt.setString(1, updated.getType());
+            stmt.setString(2, updated.getTrainer());
+            stmt.setString(3, updated.getHall());
+            stmt.setTimestamp(4,
+            java.sql.Timestamp.valueOf(
+                updated.getDate() + " " + updated.getTime() + ":00"));
+
+            stmt.setInt(5, id);
+            stmt.executeUpdate();
+            refreshCalendar();
+        }
+
+        catch (Exception e) {
             e.printStackTrace();
         }
 
