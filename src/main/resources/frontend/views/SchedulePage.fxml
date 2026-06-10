@@ -42,8 +42,19 @@
             <Button fx:id="btnViewMonth" text="Месец" styleClass="segmented-btn" onAction="#handleViewMonth"/>
         </HBox>
 
-        <ComboBox promptText="Филтър треньор" styleClass="filter-combo" style="-fx-pref-width: 150px;"/>
-        <ComboBox promptText="Филтър зала" styleClass="filter-combo" style="-fx-pref-width: 130px;"/>
+        <ComboBox
+                fx:id="trainerFilter"
+                promptText="Всички треньори"
+                styleClass="filter-combo"
+                style="-fx-pref-width: 180px;"
+        />
+
+        <ComboBox
+                fx:id="typeFilter"
+                promptText="Всички типове"
+                styleClass="filter-combo"
+                style="-fx-pref-width: 180px;"
+        />
     </HBox>
 
     <!-- WEEKLY TIMETABLE GRID (Календар) -->
