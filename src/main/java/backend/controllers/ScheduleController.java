@@ -171,6 +171,26 @@ public class ScheduleController {
                 stmt.setObject(1, currentAnchorDate);
                 try (ResultSet rs = stmt.executeQuery()) {
                     while (rs.next()) {
+                        String trainer = trainerFilter.getValue();
+                        String type = typeFilter.getValue();
+
+                        if (
+                                trainer != null && !trainer.equals("Всички")
+                                        && !rs.getString("coach_name").equals(trainer)
+
+                        ) {
+                            continue;
+                        }
+
+                        if (
+                                type != null && !type.equals("Всички")
+                                        && !rs.getString("workout_name").equals(type)
+
+                        ) {
+
+                            continue;
+
+                        }
                         LocalDateTime startDateTime = rs.getTimestamp("start_time").toLocalDateTime();
                         int rowIdx = startDateTime.getHour() - 8 + 1;
                         if (rowIdx >= 1 && rowIdx <= 14) {
@@ -455,7 +475,28 @@ public class ScheduleController {
                 stmt.setObject(2, lastOfMonth);
 
                 try (ResultSet rs = stmt.executeQuery()) {
-                    while (rs.next()) {
+                    while (rs.next()) {String trainer = trainerFilter.getValue();
+
+                        String type = typeFilter.getValue();
+
+                        if (
+                                trainer != null && !trainer.equals("Всички") &&
+                                        !rs.getString("coach_name").equals(trainer)
+                        ) {
+                            continue;
+                        }
+
+                        if (
+                                type != null
+                                        &&
+                                        !type.equals("Всички")
+                                        &&
+                                        !rs.getString("workout_name").equals(type)
+                        ) {
+
+                            continue;
+
+                        }
                         LocalDate date = rs.getTimestamp("start_time").toLocalDateTime().toLocalDate();
                         String info = rs.getString("workout_name") + " (" + rs.getTimestamp("start_time").toLocalDateTime().getHour() + ":00)";
                         monthlyTrainings.computeIfAbsent(date, k -> new ArrayList<>()).add(info);
