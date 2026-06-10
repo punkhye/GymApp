@@ -16,7 +16,11 @@
         <Label text="График и групови тренировки" styleClass="dashboard-title"/>
         <Region HBox.hgrow="ALWAYS"/>
         <HBox spacing="10.0">
-            <Button text="⚙ Управление на типове" styleClass="secondary-action-btn"/>
+            <Button
+                    text="⚙ Управление"
+                    styleClass="secondary-action-btn"
+                    onAction="#onManage"
+            />
             <Button text="+ Нова тренировка" styleClass="primary-action-btn" onAction="#onCreateTraining"/>
         </HBox>
     </HBox>

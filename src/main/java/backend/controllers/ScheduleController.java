@@ -681,6 +681,26 @@ public class ScheduleController {
 
     }
 
+    @FXML
+    private void onManage() {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/frontend/views/ManageDialog.fxml"));
+
+            Stage stage = new Stage();
+            stage.setScene(new Scene(loader.load()));
+
+            stage.setTitle("Управление");
+            stage.showAndWait();
+            refreshCalendar();
+
+        }
+
+        catch (Exception e) {
+            e.printStackTrace();
+        }
+
+    }
+
     private void openEditDialog(Integer id) {
         try {
             Connection conn = DBConnection.getConnection();
@@ -732,6 +752,8 @@ public class ScheduleController {
                     20
             );
             stage.showAndWait();
+            loadTrainerFilter();
+            loadTypeFilter();
             refreshCalendar();
 
             if (

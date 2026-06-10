@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox
+        xmlns="http://javafx.com/javafx/22"
+        xmlns:fx="http://javafx.com/fxml/1"
+        fx:controller="backend.controllers.ManageController"
+        spacing="15"
+        alignment="CENTER"
+>
+
+    <Label text="Управление"/>
+
+    <HBox spacing="10">
+
+        <TextField
+                fx:id="trainerField"
+                promptText="Име преподавател"
+        />
+
+        <Button
+                text="Добави"
+                onAction="#addTrainer"
+        />
+
+    </HBox>
+
+    <HBox spacing="10">
+
+        <TextField
+                fx:id="sportField"
+                promptText="Нов спорт"
+        />
+
+        <Button
+                text="Добави"
+                onAction="#addSport"
+        />
+
+    </HBox>
+
+</VBox>
