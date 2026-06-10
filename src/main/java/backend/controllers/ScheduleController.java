@@ -8,6 +8,7 @@ import javafx.scene.control.Label;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
 import java.sql.Connection;
+import javafx.scene.control.ComboBox;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.time.DayOfWeek;
@@ -39,6 +40,12 @@ public class ScheduleController {
     private Button btnViewWeek;
     @FXML
     private Button btnViewMonth;
+    @FXML
+    private ComboBox<String> trainerFilter;
+
+
+    @FXML
+    private ComboBox<String> typeFilter;
 
     private HomeController mainController;
     private LocalDate currentAnchorDate;
@@ -94,8 +101,16 @@ public class ScheduleController {
 
     @FXML
     public void initialize() {
+
         currentAnchorDate = LocalDate.now();
+        loadTrainerFilter();
+        loadTypeFilter();
+
+        trainerFilter.setOnAction(e -> refreshCalendar());
+        typeFilter.setOnAction(e -> refreshCalendar());
+
         refreshCalendar();
+
     }
 
     private void refreshCalendar() {
@@ -239,10 +254,28 @@ public class ScheduleController {
         try {
             Connection conn = DBConnection.getConnection();
             try (PreparedStatement stmt = conn.prepareStatement(query)) {
+                String trainer = trainerFilter.getValue();
+                String type = typeFilter.getValue();
+
                 stmt.setObject(1, startOfWeek);
                 stmt.setObject(2, endOfWeek);
                 try (ResultSet rs = stmt.executeQuery()) {
                     while (rs.next()) {
+                        if (
+                                trainer != null && !trainer.equals("Всички") && !rs.getString("coach_name").equals(trainer)
+                        ) {
+
+                            continue;
+
+                        }
+
+                        if (
+                                type != null && !type.equals("Всички") && !rs.getString("workout_name").equals(type)
+                        ) {
+
+                            continue;
+
+                        }
                         LocalDateTime startDateTime = rs.getTimestamp("start_time").toLocalDateTime();
                         int columnIdx = startDateTime.getDayOfWeek().getValue();
                         int rowIdx = startDateTime.getHour() - 8 + 1;
@@ -264,6 +297,72 @@ public class ScheduleController {
         }
 
     }
+
+    private void loadTrainerFilter() {
+        trainerFilter.getItems().clear();
+        trainerFilter.getItems().add("Всички");
+        trainerFilter.setValue("Всички");
+
+        try {
+            Connection conn = DBConnection.getConnection();
+            PreparedStatement stmt = conn.prepareStatement(
+            """
+            SELECT
+            first_name,
+            last_name
+            FROM coaches
+            ORDER BY first_name
+            """
+                    );
+
+            ResultSet rs = stmt.executeQuery();
+
+            while (rs.next()) {
+                trainerFilter.getItems().add(rs.getString("first_name") + " " + rs.getString("last_name"));
+
+            }
+
+        }
+
+        catch (Exception e) {
+
+            e.printStackTrace();
+
+        }
+
+    }
+
+    private void loadTypeFilter() {
+        typeFilter.getItems().clear();
+        typeFilter.getItems().add("Всички");
+        typeFilter.setValue("Всички");
+
+        try {
+
+            Connection conn = DBConnection.getConnection();
+            PreparedStatement stmt = conn.prepareStatement(
+             """
+             SELECT name
+             FROM workout_types
+             ORDER BY name
+             """
+                    );
+
+            ResultSet rs = stmt.executeQuery();
+
+            while (rs.next()) {
+                typeFilter.getItems().add(rs.getString("name"));
+            }
+
+        }
+
+        catch (Exception e) {
+            e.printStackTrace();
+
+        }
+
+    }
+
     private VBox getOrCreateSlot(
             int col,
             int row
