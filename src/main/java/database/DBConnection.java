@@ -49,7 +49,7 @@ public class DBConnection {
             // Ако и по двата начина нищо не се намери
             if (!loaded) {
                 throw new java.io.FileNotFoundException(
-                        "❌ Не намирам db.properties никъде! Сложи го в 'src/main/database/' или в корена на проекта."
+                        "❌ Не намирам db.properties никъде!"
                 );
             }
 
