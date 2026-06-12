@@ -7,6 +7,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.chart.PieChart;
+import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 
@@ -20,6 +21,8 @@ public class ReportsController {
 
     // --- JavaFX Елементи за графики и статистика ---
     @FXML private PieChart revenueChart; // Кръгова графика за финансовия отчет
+
+    @FXML private Label totalRevenueLabel;
 
     // --- JavaFX Елементи за матрицата на треньорите ---
     @FXML private TableView<CoachRow> coachTable;
@@ -58,6 +61,7 @@ public class ReportsController {
         // Демонстрационни бизнес данни за натовареността на фитнес треньорите
         ObservableList<CoachRow> coachData = FXCollections.observableArrayList();
         loadCoachPerformance();
+        loadRevenue();
 
     }
 
@@ -115,6 +119,30 @@ public class ReportsController {
         }
 
         coachTable.setItems(coachData);
+    }
+
+    private void loadRevenue() {
+        String sql = "SELECT COALESCE(SUM(amount_paid), 0) AS total_revenue " +
+                "FROM member_subscriptions " +
+                "WHERE purchase_date BETWEEN ? AND ?";
+
+        Connection conn = DBConnection.getConnection();
+
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setDate(1, java.sql.Date.valueOf(startDate));
+            ps.setDate(2, java.sql.Date.valueOf(endDate));
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    double total = rs.getDouble("total_revenue");
+                    totalRevenueLabel.setText(String.format("%,.2f EURO", total));
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            totalRevenueLabel.setText("Грешка");
+        }
     }
 
 

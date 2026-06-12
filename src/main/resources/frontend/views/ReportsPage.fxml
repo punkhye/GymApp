@@ -36,8 +36,7 @@
             <children>
                 <VBox styleClass="kpi-card" GridPane.columnIndex="0" spacing="5.0">
                     <Label text="ОБЩ ПРИХОД" styleClass="kpi-title"/>
-                    <Label text="14,520 BGN" styleClass="kpi-value" style="-fx-font-size: 24px;"/>
-                    <Label text="▲ +12% спрямо миналия месец" style="-fx-text-fill: #16A34A; -fx-font-size: 11px; -fx-font-weight: bold;"/>
+                    <Label fx:id="totalRevenueLabel" text="14,520 BGN" styleClass="kpi-value" style="-fx-font-size: 24px;"/>
                 </VBox>
                 <VBox styleClass="kpi-card" GridPane.columnIndex="1" spacing="5.0">
                     <Label text="НОВИ ЧЛЕНОВЕ" styleClass="kpi-title"/>
