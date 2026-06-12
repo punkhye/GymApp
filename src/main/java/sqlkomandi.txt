@@ -1,1 +1,97 @@
 TRUNCATE TABLE equipment RESTART IDENTITY; - za triene na cqlata tablica
+
+-- 1. Служители
+CREATE TABLE users (
+    id SERIAL PRIMARY KEY,
+    username VARCHAR(50) UNIQUE NOT NULL,
+    password_hash VARCHAR(255) NOT NULL,
+    first_name VARCHAR(50) NOT NULL,
+    last_name VARCHAR(50) NOT NULL,
+    role VARCHAR(20) NOT NULL,
+    is_active BOOLEAN DEFAULT TRUE
+);
+
+-- 2. Членове
+CREATE TABLE members (
+    id SERIAL PRIMARY KEY,
+    first_name VARCHAR(50) NOT NULL,
+    last_name VARCHAR(50) NOT NULL,
+    egn_or_dob VARCHAR(20) NOT NULL,
+    gender VARCHAR(10) NOT NULL,
+    phone VARCHAR(20) NOT NULL,
+    health_notes TEXT,
+    is_active BOOLEAN DEFAULT TRUE
+);
+
+-- 3. Типове абонаменти
+CREATE TABLE subscription_types (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    price DECIMAL(10, 2) NOT NULL,
+    duration_days INT,
+    total_visits INT
+);
+
+-- 4. Закупени абонаменти
+CREATE TABLE member_subscriptions (
+    id SERIAL PRIMARY KEY,
+    member_id INT REFERENCES members(id),
+    subscription_type_id INT REFERENCES subscription_types(id),
+    purchase_date DATE NOT NULL,
+    end_date DATE,
+    remaining_visits INT,
+    amount_paid DECIMAL(10, 2) NOT NULL,
+    payment_method VARCHAR(20) NOT NULL,
+    processed_by_user_id INT REFERENCES users(id)
+);
+
+-- 5. Треньори
+CREATE TABLE coaches (
+    id SERIAL PRIMARY KEY,
+    first_name VARCHAR(50) NOT NULL,
+    last_name VARCHAR(50) NOT NULL,
+    phone VARCHAR(20) NOT NULL,
+    specializations TEXT,
+    is_active BOOLEAN DEFAULT TRUE
+);
+
+-- 6. Видове тренировки
+CREATE TABLE workout_types (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(50) NOT NULL,
+    duration_minutes INT NOT NULL,
+    max_participants INT NOT NULL
+);
+
+-- 7. График
+CREATE TABLE schedules (
+    id SERIAL PRIMARY KEY,
+    workout_type_id INT REFERENCES workout_types(id),
+    coach_id INT REFERENCES coaches(id),
+    hall_name VARCHAR(50) NOT NULL,
+    start_time TIMESTAMP NOT NULL
+);
+
+-- 8. Записвания за тренировки
+CREATE TABLE workout_registrations (
+    id SERIAL PRIMARY KEY,
+    schedule_id INT REFERENCES schedules(id),
+    member_id INT REFERENCES members(id),
+    attended BOOLEAN DEFAULT FALSE
+);
+
+-- 9. Общи посещения (Check-in)
+CREATE TABLE daily_attendance (
+    id SERIAL PRIMARY KEY,
+    member_id INT REFERENCES members(id),
+    check_in_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 10. Оборудване
+CREATE TABLE equipment (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    type VARCHAR(50) NOT NULL,
+    status VARCHAR(30) NOT NULL,
+    notes TEXT
+);

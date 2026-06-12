@@ -1,5 +1,6 @@
 package backend.controllers;
 
+import database.DBConnection;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
@@ -8,6 +9,12 @@ import javafx.fxml.FXML;
 import javafx.scene.chart.PieChart;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
+
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.time.LocalDate;
 
 public class ReportsController {
 
@@ -23,6 +30,10 @@ public class ReportsController {
 
     // Референция към главния контролер за координация на навигацията
     private HomeController mainController;
+
+    // tozi mesec
+    private LocalDate startDate = LocalDate.now().withDayOfMonth(1);
+    private LocalDate endDate = LocalDate.now();
 
     public void setMainController(HomeController mainController) {
         this.mainController = mainController;
@@ -45,16 +56,13 @@ public class ReportsController {
         colTotalMembers.setCellValueFactory(d -> d.getValue().totalMembers);
 
         // Демонстрационни бизнес данни за натовареността на фитнес треньорите
-        ObservableList<CoachRow> coachData = FXCollections.observableArrayList(
-                new CoachRow("Димитър Петров", "CrossFit", 24, 410),
-                new CoachRow("Елена Георгиева", "Йога / Пилатес", 18, 195)
-        );
-        coachTable.setItems(coachData);
+        ObservableList<CoachRow> coachData = FXCollections.observableArrayList();
+        loadCoachPerformance();
+
     }
 
     // Помощен вътрешен клас (Модел) за представяне на ред от статистиката за треньори
     public static class CoachRow {
-        // Използваме съответните Properties за текстови и числови полета за коректен Data Binding
         public SimpleStringProperty name;
         public SimpleStringProperty specialization;
         public SimpleIntegerProperty classesCount;
@@ -67,4 +75,47 @@ public class ReportsController {
             this.totalMembers = new SimpleIntegerProperty(members);
         }
     }
+
+    private void loadCoachPerformance() {
+        String sql =
+                "SELECT c.first_name || ' ' || c.last_name AS coach_name, " +
+                        "       c.specializations, " +
+                        "       COUNT(DISTINCT s.id) AS classes_count, " +
+                        "       COUNT(wr.id) AS total_members " +
+                        "FROM coaches c " +
+                        "JOIN schedules s ON s.coach_id = c.id " +
+                        "LEFT JOIN workout_registrations wr ON wr.schedule_id = s.id AND wr.attended = TRUE " +
+                        "WHERE s.start_time BETWEEN ? AND ? " +
+                        "AND c.is_active = TRUE " +
+                        "GROUP BY c.id, c.first_name, c.last_name, c.specializations " +
+                        "ORDER BY classes_count DESC";
+
+        ObservableList<CoachRow> coachData = FXCollections.observableArrayList();
+
+        Connection conn = DBConnection.getConnection();
+
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setTimestamp(1, java.sql.Timestamp.valueOf(startDate.atStartOfDay()));
+            ps.setTimestamp(2, java.sql.Timestamp.valueOf(endDate.atTime(23, 59, 59)));
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    coachData.add(new CoachRow(
+                            rs.getString("coach_name"),
+                            rs.getString("specializations"),
+                            rs.getInt("classes_count"),
+                            rs.getInt("total_members")
+                    ));
+                }
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        coachTable.setItems(coachData);
+    }
+
+
 }
