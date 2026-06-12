@@ -78,36 +78,15 @@
                     <Insets top="15.0" right="20.0" bottom="15.0" left="20.0"/>
                 </padding>
                 <Label text="Популярност на груповите тренировки" styleClass="section-title" style="-fx-font-size: 16px;"/>
-                <Separator />
+            <VBox styleClass="details-panel" spacing="10.0" VBox.vgrow="ALWAYS">
+                <ScrollPane fitToWidth="true"
+                            VBox.vgrow="ALWAYS">
 
-                <VBox spacing="12.0" VBox.vgrow="ALWAYS" alignment="CENTER">
-                    <VBox spacing="4.0">
-                        <HBox>
-                            <Label text="Кросфит" style="-fx-font-weight: bold; -fx-text-fill: #1A1D20;"/>
-                            <Region HBox.hgrow="ALWAYS"/>
-                            <Label text="90% (Ср. 18/20 участници)" style="-fx-text-fill: #4B5563; -fx-font-size: 12px;"/>
-                        </HBox>
-                        <ProgressBar progress="0.90" prefWidth="400.0" styleClass="custom-progress-bar" style="-fx-accent: #84CC16;"/>
-                    </VBox>
-
-                    <VBox spacing="4.0">
-                        <HBox>
-                            <Label text="Бокс" style="-fx-font-weight: bold; -fx-text-fill: #1A1D20;"/>
-                            <Region HBox.hgrow="ALWAYS"/>
-                            <Label text="70% (Ср. 14/20 участници)" style="-fx-text-fill: #4B5563; -fx-font-size: 12px;"/>
-                        </HBox>
-                        <ProgressBar progress="0.70" prefWidth="400.0" styleClass="custom-progress-bar" style="-fx-accent: #3B82F6;"/>
-                    </VBox>
-
-                    <VBox spacing="4.0">
-                        <HBox>
-                            <Label text="Йога / Пилатес" style="-fx-font-weight: bold; -fx-text-fill: #1A1D20;"/>
-                            <Region HBox.hgrow="ALWAYS"/>
-                            <Label text="53% (Ср. 8/15 участници)" style="-fx-text-fill: #4B5563; -fx-font-size: 12px;"/>
-                        </HBox>
-                        <ProgressBar progress="0.53" prefWidth="400.0" styleClass="custom-progress-bar" style="-fx-accent: #6B7280;"/>
-                    </VBox>
-                </VBox>
+                    <VBox fx:id="workoutPopularityContainer"
+                          spacing="12.0"
+                          alignment="CENTER"/>
+                </ScrollPane>
+            </VBox>
             </VBox>
         </HBox>
 

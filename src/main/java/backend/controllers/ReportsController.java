@@ -8,8 +8,10 @@ import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.chart.PieChart;
 import javafx.scene.control.Label;
+import javafx.scene.control.ProgressBar;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
+import javafx.scene.layout.VBox;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -33,10 +35,12 @@ public class ReportsController {
 
     // Референция към главния контролер за координация на навигацията
     private HomeController mainController;
+    @FXML private VBox workoutPopularityContainer;
 
     // tozi mesec
     private LocalDate startDate = LocalDate.now().withDayOfMonth(1);
     private LocalDate endDate = LocalDate.now();
+
 
     public void setMainController(HomeController mainController) {
         this.mainController = mainController;
@@ -62,6 +66,7 @@ public class ReportsController {
         ObservableList<CoachRow> coachData = FXCollections.observableArrayList();
         loadCoachPerformance();
         loadRevenue();
+        loadWorkoutPopularity();
 
     }
 
@@ -142,6 +147,63 @@ public class ReportsController {
         } catch (SQLException e) {
             e.printStackTrace();
             totalRevenueLabel.setText("Грешка");
+        }
+    }
+
+    private void loadWorkoutPopularity() {
+
+        String sql =
+                "SELECT " +
+                        "wt.name, " +
+                        "COUNT(s.id) AS schedules_count, " +
+                        "wt.max_participants, " +
+                        "COALESCE(COUNT(wr.id), 0) AS registrations, " +
+                        "CASE " +
+                        "   WHEN COUNT(s.id) = 0 THEN 0 " +
+                        "   ELSE ROUND( " +
+                        "       (COALESCE(COUNT(wr.id),0)::decimal / " +
+                        "       (COUNT(s.id) * wt.max_participants)) * 100, 0 " +
+                        "   ) " +
+                        "END AS occupancy " +
+                        "FROM workout_types wt " +
+                        "JOIN schedules s ON s.workout_type_id = wt.id " +
+                        "LEFT JOIN workout_registrations wr ON wr.schedule_id = s.id " +
+                        "GROUP BY wt.id, wt.name, wt.max_participants " +
+                        "HAVING COUNT(s.id) > 0 " +
+                        "ORDER BY occupancy DESC";
+
+        Connection conn = DBConnection.getConnection();
+
+        try (PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+
+            workoutPopularityContainer.getChildren().clear();
+
+            while (rs.next()) {
+
+                String name = rs.getString("name");
+                int occupancy = rs.getInt("occupancy");
+
+                System.out.println(name + " -> " + occupancy + "%");
+
+                VBox card = new VBox(5);
+                card.setStyle("-fx-background-color: #F9FAFB; -fx-padding: 10; -fx-background-radius: 6;");
+
+                Label title = new Label(name);
+                title.setStyle("-fx-font-weight: bold; -fx-font-size: 13px;");
+
+                Label percent = new Label("Популярност: " + occupancy + "%");
+
+                double progressValue = Math.max(0, Math.min(1, occupancy / 100.0));
+                ProgressBar bar = new ProgressBar(progressValue);
+
+                card.getChildren().addAll(title, percent, bar);
+
+                workoutPopularityContainer.getChildren().add(card);
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
