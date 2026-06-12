@@ -14,7 +14,7 @@ public class Main extends Application {
 
 
         var conn = DBConnection.getConnection();
-        DBConnection.init();
+        DBConnection.getConnection();
 
         Label label;
 
